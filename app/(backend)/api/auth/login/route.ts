@@ -1,55 +1,65 @@
-import { type NextRequest, NextResponse } from "next/server"
-// import { getDb } from "@/lib/mongodb"
-import { verifyPassword, createToken } from "@/lib/auth"
-import { cookies } from "next/headers"
+import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { connectToDB } from "@/lib/db/mongodb";
+import { User } from "@/app/(backend)/models/user/userSchema";
 
-export async function POST(request: NextRequest) {
+const JWT_SECRET = process.env.JWT_TOKEN as string;
+
+export async function POST(req: Request) {
   try {
-    const { email, password } = await request.json()
+    const { email, password } = await req.json();
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email and password are required" }, { status: 400 })
+    await connectToDB();
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
-    // const db = await getDb()
-    // const user = await db.collection("users").findOne({ email })
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return NextResponse.json(
+        { message: "Invalid password" },
+        { status: 400 }
+      );
+    }
 
-    // if (!user) {
-    //   return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
-    // }
-
-    // const isValid = await verifyPassword(password, user.password)
-
-    // if (!isValid) {
-    //   return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
-    // }
-
-    // const token = await createToken({
-    //   _id: user._id.toString(),
-    //   email: user.email,
-    //   name: user.name,
-    //   role: user.role,
-    //   createdAt: user.createdAt,
-    // })
-
-    const cookieStore = await cookies()
-    // cookieStore.set("auth-token", token, {
-    //   httpOnly: true,
-    //   secure: process.env.NODE_ENV === "production",
-    //   sameSite: "lax",
-    //   maxAge: 60 * 60 * 24 * 7, // 7 days
-    // })
-
-    return NextResponse.json({
-      user: {
-        // _id: user._id.toString(),
-        // email: user.email,
-        // name: user.name,
-        // role: user.role,
+    const token = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+        role: user.role,
       },
-    })
-  } catch (error) {
-    console.error("[v0] Login error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    // Create response object
+    const res = NextResponse.json({
+      message: "Login successful",
+      token,
+      user: {
+        ...user._doc,
+        password: undefined,
+      },
+    });
+
+    // Attach cookie
+    res.cookies.set({
+      name: "token",
+      value: token,
+      httpOnly: true,
+      // path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+
+    return res;
+  } catch (err: any) {
+    return NextResponse.json(
+      { message: "Server error", error: err.message },
+      { status: 500 }
+    );
   }
 }

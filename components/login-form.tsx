@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { GraduationCap } from "lucide-react"
+import Image from "next/image"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
@@ -48,13 +49,13 @@ export function LoginForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
-        <div className="flex items-center justify-center mb-4">
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary">
-            <GraduationCap className="w-7 h-7 text-primary-foreground" />
+        <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center rounded-xl ">
+            <Image alt="school logo" width={200} height={200} src={'/logo.webp'}/>
           </div>
         </div>
         <CardTitle className="text-2xl text-center">Welcome Back</CardTitle>
-        <CardDescription className="text-center">Sign in to access the Academic Management System</CardDescription>
+        <CardDescription className="text-center">Sign in to access the Mount Olive's Academic Management System</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">

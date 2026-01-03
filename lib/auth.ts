@@ -1,7 +1,5 @@
 // import { getDb } from "./mongodb"
 import bcrypt from "bcryptjs"
-import { SignJWT, jwtVerify } from "jose"
-import { cookies } from "next/headers"
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "your-secret-key-change-in-production")
 
@@ -23,22 +21,22 @@ export async function verifyPassword(password: string, hashedPassword: string): 
   return bcrypt.compare(password, hashedPassword)
 }
 
-export async function createToken(user: User): Promise<string> {
-  return new SignJWT({ userId: user._id, role: user.role })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("7d")
-    .sign(JWT_SECRET)
-}
+// export async function createToken(user: User): Promise<string> {
+//   return new SignJWT({ userId: user._id, role: user.role })
+//     .setProtectedHeader({ alg: "HS256" })
+//     .setIssuedAt()
+//     .setExpirationTime("7d")
+//     .sign(JWT_SECRET)
+// }
 
-export async function verifyToken(token: string) {
-  try {
-    const verified = await jwtVerify(token, JWT_SECRET)
-    return verified.payload
-  } catch (err) {
-    return null
-  }
-}
+// export async function verifyToken(token: string) {
+//   try {
+//     const verified = await jwtVerify(token, JWT_SECRET)
+//     return verified.payload
+//   } catch (err) {
+//     return null
+//   }
+// }
 
 export async function getSession() {
   // const cookieStore = await cookies()
