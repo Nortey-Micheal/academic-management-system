@@ -1,14 +1,7 @@
-import { requireAuth } from "@/lib/auth"
-import { redirect } from "next/navigation"
 import { AssessmentsList } from "@/components/assessments-list"
 import AppLayout from "@/components/layouts/applayout"
 
 export default async function AssessmentsPage() {
-  const user = await requireAuth()
-
-  if (!user) {
-    redirect("/")
-  }
 
   return (
     <AppLayout>

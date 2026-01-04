@@ -1,4 +1,3 @@
-import { requireAuth } from "@/lib/auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DUMMY_TIMETABLE } from "@/lib/dummy-data"
 import AppLayout from "@/components/layouts/applayout"
@@ -6,7 +5,6 @@ import AppLayout from "@/components/layouts/applayout"
 export default async function TimetablePage() {
   // requireAuth returns a dummy user when auth is disabled in dev
   try {
-    await requireAuth()
   } catch (e) {
     // ignore and continue with dummy data for demo
   }
