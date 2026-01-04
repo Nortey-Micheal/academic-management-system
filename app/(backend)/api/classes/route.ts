@@ -20,7 +20,7 @@ export async function GET() {
       // })),
     })
   } catch (error) {
-    console.error("[v0] Error fetching classes:", error)
+    console.error(" Error fetching classes:", error)
     return NextResponse.json({ error: "Failed to fetch classes" }, { status: 500 })
   }
 }
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("[v0] Error creating class:", error)
+    console.error(" Error creating class:", error)
     return NextResponse.json({ error: "Failed to create class" }, { status: 500 })
   }
 }

@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getDb } from "@/lib/mongodb"
 import { requireAuth } from "@/lib/auth"
+import { connectToDB } from "@/lib/db/mongodb"
+import Attendance from "../../models/attendanceSchema"
 
 export async function GET(request: NextRequest) {
   const user = await requireAuth()
@@ -18,15 +19,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "classId and date are required" }, { status: 400 })
     }
 
-    const db = await getDb()
+    await connectToDB()
     const attendanceDate = new Date(date)
     attendanceDate.setHours(0, 0, 0, 0)
 
     const nextDay = new Date(attendanceDate)
     nextDay.setDate(nextDay.getDate() + 1)
 
-    const attendance = await db
-      .collection("attendance")
+    const attendance = await Attendance
       .find({
         classId,
         date: {
@@ -34,7 +34,6 @@ export async function GET(request: NextRequest) {
           $lt: nextDay,
         },
       })
-      .toArray()
 
     return NextResponse.json({
       attendance: attendance.map((a) => ({
@@ -43,7 +42,7 @@ export async function GET(request: NextRequest) {
       })),
     })
   } catch (error) {
-    console.error("[v0] Error fetching attendance:", error)
+    console.error(" Error fetching attendance:", error)
     return NextResponse.json({ error: "Failed to fetch attendance" }, { status: 500 })
   }
 }
@@ -62,7 +61,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    const db = await getDb()
+    await connectToDB()
     const attendanceDate = new Date(date)
     attendanceDate.setHours(0, 0, 0, 0)
 
@@ -70,7 +69,7 @@ export async function POST(request: NextRequest) {
     nextDay.setDate(nextDay.getDate() + 1)
 
     // Delete existing attendance for this class and date
-    await db.collection("attendance").deleteMany({
+    await Attendance.deleteMany({
       classId,
       date: {
         $gte: attendanceDate,
@@ -90,12 +89,12 @@ export async function POST(request: NextRequest) {
     }))
 
     if (attendanceRecords.length > 0) {
-      await db.collection("attendance").insertMany(attendanceRecords)
+      await Attendance.insertMany(attendanceRecords)
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("[v0] Error saving attendance:", error)
+    console.error(" Error saving attendance:", error)
     return NextResponse.json({ error: "Failed to save attendance" }, { status: 500 })
   }
 }

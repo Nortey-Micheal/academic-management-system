@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       // })),
     })
   } catch (error) {
-    console.error("[v0] Error fetching grades:", error)
+    console.error(" Error fetching grades:", error)
     return NextResponse.json({ error: "Failed to fetch grades" }, { status: 500 })
   }
 }
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("[v0] Error saving grades:", error)
+    console.error(" Error saving grades:", error)
     return NextResponse.json({ error: "Failed to save grades" }, { status: 500 })
   }
 }

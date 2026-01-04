@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       // })),
     })
   } catch (error) {
-    console.error("[v0] Error fetching students:", error)
+    console.error(" Error fetching students:", error)
     return NextResponse.json({ error: "Failed to fetch students" }, { status: 500 })
   }
 }
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("[v0] Error creating student:", error)
+    console.error(" Error creating student:", error)
     return NextResponse.json({ error: "Failed to create student" }, { status: 500 })
   }
 }

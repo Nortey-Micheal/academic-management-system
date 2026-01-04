@@ -1,7 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getDb } from "@/lib/mongodb"
 import { requireAuth } from "@/lib/auth"
 import { ObjectId } from "mongodb"
+import { connectToDB } from "@/lib/db/mongodb"
+import Student from "@/app/(backend)/models/studentSchema"
+import ClassRoom from "@/app/(backend)/models/classSchema"
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await requireAuth(["admin", "academic_officer"])
@@ -11,9 +13,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   try {
+    await connectToDB()
     const { id } = await params
     const data = await request.json()
-    const db = await getDb()
 
     const updateData = {
       firstName: data.firstName,
@@ -28,7 +30,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       updatedAt: new Date(),
     }
 
-    await db.collection("students").updateOne({ _id: new ObjectId(id) }, { $set: updateData })
+    await Student.updateOne({ _id: new ObjectId(id) }, { $set: updateData })
 
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -46,17 +48,16 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
   try {
     const { id } = await params
-    const db = await getDb()
+    await connectToDB()
 
-    const student = await db.collection("students").findOne({ _id: new ObjectId(id) })
+    const student = await Student.findOne({ _id: new ObjectId(id) })
 
     if (student) {
-      await db
-        .collection("classes")
+      await ClassRoom
         .updateOne({ _id: new ObjectId(student.classId) }, { $inc: { currentEnrollment: -1 } })
     }
 
-    await db.collection("students").deleteOne({ _id: new ObjectId(id) })
+    await Student.deleteOne({ _id: new ObjectId(id) })
 
     return NextResponse.json({ success: true })
   } catch (error) {

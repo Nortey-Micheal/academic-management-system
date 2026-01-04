@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       // })),
     })
   } catch (error) {
-    console.error("[v0] Error fetching assessments:", error)
+    console.error("Error fetching assessments:", error)
     return NextResponse.json({ error: "Failed to fetch assessments" }, { status: 500 })
   }
 }
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("[v0] Error creating assessment:", error)
+    console.error("Error creating assessment:", error)
     return NextResponse.json({ error: "Failed to create assessment" }, { status: 500 })
   }
 }

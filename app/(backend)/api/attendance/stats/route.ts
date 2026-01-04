@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getDb } from "@/lib/mongodb"
 import { requireAuth } from "@/lib/auth"
+import { connectToDB } from "@/lib/db/mongodb"
+import Attendance from "@/app/(backend)/models/attendanceSchema"
 
 export async function GET(request: NextRequest) {
   const user = await requireAuth()
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get("startDate")
     const endDate = searchParams.get("endDate")
 
-    const db = await getDb()
+    await connectToDB()
     const query: any = {}
 
     if (studentId) query.studentId = studentId
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const attendance = await db.collection("attendance").find(query).toArray()
+    const attendance = await Attendance.find(query)
 
     const stats = {
       total: attendance.length,
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
       rate: rate.toFixed(1),
     })
   } catch (error) {
-    console.error("[v0] Error fetching attendance stats:", error)
+    console.error(" Error fetching attendance stats:", error)
     return NextResponse.json({ error: "Failed to fetch attendance stats" }, { status: 500 })
   }
 }
