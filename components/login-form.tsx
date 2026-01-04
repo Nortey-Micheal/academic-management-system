@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { GraduationCap } from "lucide-react"
 import Image from "next/image"
+import { Separator } from "./ui/separator"
+import Link from "next/link"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
@@ -82,8 +83,13 @@ export function LoginForm() {
           </div>
           {error && <div className="p-3 text-sm rounded-lg bg-destructive/10 text-destructive">{error}</div>}
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Logging in..." : "Log In"}
           </Button>
+
+          <Separator />
+
+          <p className="text-sm text-center">Don't have an account? <Link className="underline text-blue-700 ml-3 " href={'/auth/signup'}>Sign Up</Link></p>
+
         </form>
       </CardContent>
     </Card>
