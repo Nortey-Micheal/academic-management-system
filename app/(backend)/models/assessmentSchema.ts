@@ -31,6 +31,6 @@ const AssessmentSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-const Assessment = models.assessment || mongoose.model('Assessment', AssessmentSchema)
+const Assessment = models.Assessment || mongoose.model('Assessment', AssessmentSchema)
 
 export default Assessment

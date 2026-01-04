@@ -23,6 +23,6 @@ const GradeSchema = new mongoose.Schema({
     remarks: String
 }, { timestamps: true });
 
-const Grade = models.grade || mongoose.model('Grade',GradeSchema)
+const Grade = models.Grade || mongoose.model('Grade',GradeSchema)
 
 export default Grade

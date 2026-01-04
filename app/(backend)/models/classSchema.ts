@@ -22,6 +22,6 @@ const ClassSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-const ClassRoom =  models.classroom || mongoose.model('Classroom',ClassSchema)
+const ClassRoom =  models.Classroom || mongoose.model('Classroom',ClassSchema)
 
 export default ClassRoom
