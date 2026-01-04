@@ -1,6 +1,6 @@
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/(frontend)/components/ui/card"
-import { Button } from "@/app/(frontend)/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { CheckCircle } from "lucide-react"
 
 export default function VerifyEmailPage() {

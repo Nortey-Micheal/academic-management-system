@@ -4,10 +4,10 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/(frontend)/components/ui/card"
-import { Button } from "@/app/(frontend)/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertCircle, CheckCircle } from "lucide-react"
-import { useForgotPassword } from "../../hooks/useForgotPassword"
+import { useForgotPassword } from "@/hooks/useForgotPassword"
+import { Button } from "@/components/ui/button"
 
 type Step = "email" | "sent"
 
