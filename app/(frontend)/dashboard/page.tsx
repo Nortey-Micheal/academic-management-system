@@ -1,3 +1,5 @@
+'use client'
+
 import { requireAuth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -6,9 +8,11 @@ import { Users, UserCheck, FileText, TrendingUp, Award, ClipboardCheck } from "l
 // import { getDb } from "@/lib/mongodb"
 import Link from "next/link"
 import AppLayout from "@/components/layouts/applayout"
+import { useSelector } from "react-redux"
+import { StoreState } from "@/lib/store"
 
 export default async function DashboardPage() {
-  // const user = await requireAuth()
+  const user = useSelector((state:StoreState) => state.user)
 
   // if (!user) {
   //   redirect("/")
@@ -25,7 +29,6 @@ export default async function DashboardPage() {
   const weekStart = new Date(today)
   weekStart.setDate(today.getDate() - 7)
   // Dummy data used when DB/auth are disabled during local development
-  const user = { name: "Admin" }
   const totalStudents = 120
   const totalClasses = 8
   const totalAssessments = 34

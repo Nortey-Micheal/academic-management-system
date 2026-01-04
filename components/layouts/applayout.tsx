@@ -1,22 +1,25 @@
+'use client'
+
 import type React from "react"
 import { redirect } from "next/navigation"
-import { getSession } from "@/lib/auth"
 import { DashboardNav } from "@/components/dashboard-nav"
+import { useSelector } from "react-redux"
+import { StoreState } from "@/lib/store"
 
-export default async function AppLayout({
+export default function AppLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const session = await getSession()
+  const user = useSelector((state:StoreState) => state.user)
 
-  if (!session) {
+  if (!user._id) {
     redirect("/")
   }
 
   return (
     <div className="flex h-screen flex-col md:flex-row bg-background overflow-hidden">
-      <DashboardNav user={session}/>
+      <DashboardNav user={user}/>
       <main className="flex-1 overflow-x-scroll container mx-auto p-6">{children}</main>
     </div>
   )

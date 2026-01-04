@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Image from "next/image"
 import { Separator } from "./ui/separator"
 import Link from "next/link"
+import { useLogin } from "@/hooks/useLogin"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
@@ -18,6 +19,7 @@ export function LoginForm() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const { login } = useLogin()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,21 +27,7 @@ export function LoginForm() {
     setLoading(true)
 
     try {
-      // const response = await fetch("/api/auth/login", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ email, password }),
-      // })
-
-      // const data = await response.json()
-
-      // if (!response.ok) {
-        // setError(data.error || "Login failed")
-      //   return
-      // }
-
-      router.push("/dashboard")
-      router.refresh()
+      login(email,password)
     } catch (err) {
       // setError("An error occurred. Please try again.")
     } finally {

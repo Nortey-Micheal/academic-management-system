@@ -26,7 +26,7 @@ const UserSchema = new Schema(
       type: String,
       enum: ['admin','headteacher','teacher'],
       index: true,
-      default: 'client'
+      default: 'teacher'
     },
 
     resetPasswordToken: {

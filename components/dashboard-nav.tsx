@@ -27,6 +27,7 @@ import type { User } from "@/lib/auth"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
+import { useLogout } from "@/hooks/useLogout"
 
 interface DashboardNavProps {
   user: User
@@ -45,15 +46,13 @@ const navItems = [
 
 export function DashboardNav({ user }: DashboardNavProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const pathname = usePathname()
+  const { logout } = useLogout()
 
   const handleLogout = async () => {
     setLoading(true)
-    await fetch("/api/auth/logout", { method: "POST" })
-    router.push("/")
-    router.refresh()
+    logout()
   }
 
   return (

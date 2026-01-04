@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/logo.webp",
+        url: "/logo-dark.webp",
         media: "(prefers-color-scheme: light)",
       },
       {
