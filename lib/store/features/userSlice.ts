@@ -1,18 +1,18 @@
-import { UserType } from '@/lib/type'
+import { User } from '@/lib/auth'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 
-const initialState: UserType = {} as UserType
+const initialState: User = {} as User
 
 const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setUser: (_state: UserType | null, action: PayloadAction<UserType>) => {
-      return action.payload as UserType
+    setUser: (_state: User | null, action: PayloadAction<User>) => {
+      return action.payload as User
     },
     clearUser: () => {
-      return {} as UserType
+      return {} as User
     },
   },
 })

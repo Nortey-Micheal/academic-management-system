@@ -1,14 +1,8 @@
-import { requireAuth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { ReportCardGenerator } from "@/components/report-card-generator"
 import AppLayout from "@/components/layouts/applayout"
 
 export default async function ReportsPage() {
-  const user = await requireAuth()
-
-  if (!user) {
-    redirect("/")
-  }
 
   return (
     <AppLayout>

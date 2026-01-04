@@ -85,6 +85,10 @@ export function DashboardNav({ user }: DashboardNavProps) {
           {/* <p>Mount Olive's School</p> */}
           <span className="font-semibold">Mount Olives School</span>
         </div>
+
+        <div className="border-y p-4 text-sm text-slate-600">
+          <p>Logged in as {user.role}</p>
+        </div>
         <nav className="p-4 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon

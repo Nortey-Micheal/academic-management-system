@@ -1,15 +1,8 @@
-import { requireAuth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { AttendanceMarker } from "@/components/attendance-marker"
 import AppLayout from "@/components/layouts/applayout"
 
 export default async function AttendancePage() {
-  const user = await requireAuth()
-
-  if (!user) {
-    redirect("/")
-  }
-
   return (
     <AppLayout>
       <div>
