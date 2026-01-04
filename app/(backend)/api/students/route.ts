@@ -1,80 +1,133 @@
-import { type NextRequest, NextResponse } from "next/server"
-// import { getDb } from "@/lib/mongodb"
-import { requireAuth } from "@/lib/auth"
+import { NextRequest, NextResponse } from "next/server"
+import { connectToDB } from "@/lib/db/mongodb"
+import Student from "../../models/studentSchema"
+import ClassRoom from "../../models/classSchema"
 import { ObjectId } from "mongodb"
+import { z } from "zod"
 
+// ---------------------
+// Validation schemas
+// ---------------------
+const createStudentSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  dateOfBirth: z
+    .string()
+    .refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date of birth" }),
+  gender: z.enum(["male", "female", "other"]),
+  classId: z.string().min(1, "classId is required"),
+  guardianName: z.string().min(1, "Guardian name is required"),
+  guardianPhone: z.string().min(1, "Guardian phone is required"),
+  guardianEmail: z.string().email().optional(),
+  address: z.string().min(1, "Address is required"),
+  admissionDate: z
+    .string()
+    .optional()
+    .refine((val) => !val || !isNaN(Date.parse(val)), { message: "Invalid admission date" }),
+})
+
+const getStudentsSchema = z.object({
+  classId: z.string().optional(),
+})
+
+// ---------------------
+// GET: Fetch students (optionally by class)
+// ---------------------
 export async function GET(request: NextRequest) {
-  const user = await requireAuth()
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
   try {
     const { searchParams } = new URL(request.url)
-    const classId = searchParams.get("classId")
+    const classId = searchParams.get("classId") || undefined
 
-    // const db = await getDb()
-    const query = classId ? { classId } : {}
-    // const students = await db.collection("students").find(query).sort({ lastName: 1, firstName: 1 }).toArray()
+    getStudentsSchema.parse({ classId })
+
+    await connectToDB()
+
+    const query: any = {}
+    if (classId) query.classId = classId
+
+    const students = await Student.find(query).sort({ lastName: 1, firstName: 1 })
 
     return NextResponse.json({
-      // students: students.map((s) => ({
-      //   ...s,
-      //   _id: s._id.toString(),
-      // })),
+      students: students.map((s) => ({
+        ...s.toObject(),
+        _id: s._id.toString(),
+        classId: s.classId.toString(),
+      })),
     })
-  } catch (error) {
-    console.error(" Error fetching students:", error)
+  } catch (error: any) {
+    console.error("Error fetching students:", error)
+
+    if (error.name === "ZodError") {
+      return NextResponse.json({ error: error.errors }, { status: 400 })
+    }
+
     return NextResponse.json({ error: "Failed to fetch students" }, { status: 500 })
   }
 }
 
+// ---------------------
+// POST: Create a new student
+// ---------------------
 export async function POST(request: NextRequest) {
-  const user = await requireAuth(["admin", "academic_officer"])
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
   try {
-    const data = await request.json()
-    // const db = await getDb()
+    const body = await request.json()
 
-    // Generate student ID
-    // const count = await db.collection("students").countDocuments()
-    // const studentId = `STU${String(count + 1).padStart(6, "0")}`
+    // Validate input
+    const parsedData = createStudentSchema.parse(body)
+
+    await connectToDB()
+
+    // Optional: Generate studentId based on total count
+    const count = await Student.countDocuments()
+    const studentId = `STU${String(count + 1).padStart(6, "0")}`
+
+    const admissionDate = parsedData.admissionDate
+      ? new Date(parsedData.admissionDate)
+      : new Date()
 
     const newStudent = {
-      // studentId,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      dateOfBirth: new Date(data.dateOfBirth),
-      gender: data.gender,
-      classId: data.classId,
-      guardianName: data.guardianName,
-      guardianPhone: data.guardianPhone,
-      guardianEmail: data.guardianEmail,
-      address: data.address,
-      admissionDate: new Date(data.admissionDate || new Date()),
+      studentId,
+      firstName: parsedData.firstName,
+      lastName: parsedData.lastName,
+      dateOfBirth: new Date(parsedData.dateOfBirth),
+      gender: parsedData.gender,
+      classId: new ObjectId(parsedData.classId),
+      guardianName: parsedData.guardianName,
+      guardianPhone: parsedData.guardianPhone,
+      guardianEmail: parsedData.guardianEmail || "",
+      address: parsedData.address,
+      admissionDate,
       status: "active",
       createdAt: new Date(),
       updatedAt: new Date(),
     }
 
-    // const result = await db.collection("students").insertOne(newStudent)
+    const result = await Student.create(newStudent)
 
     // Update class enrollment
-    // await db.collection("classes").updateOne({ _id: new ObjectId(data.classId) }, { $inc: { currentEnrollment: 1 } })
+    await ClassRoom.updateOne(
+      { _id: new ObjectId(parsedData.classId) },
+      { $inc: { currentEnrollment: 1 } }
+    )
 
     return NextResponse.json({
       student: {
-        ...newStudent,
-        // _id: result.insertedId.toString(),
+        ...result.toObject(),
+        _id: result._id.toString(),
+        classId: result.classId.toString(),
       },
-    })
-  } catch (error) {
-    console.error(" Error creating student:", error)
+    }, { status: 201 })
+  } catch (error: any) {
+    console.error("Error creating student:", error)
+
+    if (error.name === "ZodError") {
+      return NextResponse.json({ error: error.errors }, { status: 400 })
+    }
+
+    if (error.name === "ValidationError") {
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+
     return NextResponse.json({ error: "Failed to create student" }, { status: 500 })
   }
 }
