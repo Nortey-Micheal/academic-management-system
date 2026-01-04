@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { redirect } from "next/navigation"
-import { DashboardNav } from "@/components/dashboard-nav"
+import DashboardNav from "@/components/dashboard-nav"
 import { useSelector } from "react-redux"
 import { StoreState } from "@/lib/store"
 
