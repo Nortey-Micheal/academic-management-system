@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import DashboardNav from "@/components/dashboard-nav"
 import { useSelector } from "react-redux"
 import { StoreState } from "@/lib/store"
+import { useState } from "react"
 
 export default function AppLayout({
   children,
@@ -12,6 +13,7 @@ export default function AppLayout({
   children: React.ReactNode
 }) {
   const user = useSelector((state:StoreState) => state.user)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   if (!user._id) {
     redirect("/")
