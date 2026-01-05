@@ -1,11 +1,11 @@
 'use client'
 
 import type React from "react"
-import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation"
 import DashboardNav from "@/components/dashboard-nav"
 import { useSelector } from "react-redux"
 import { StoreState } from "@/lib/store"
-import { useState } from "react"
+import { useEffect } from "react"
 
 export default function AppLayout({
   children,
@@ -13,11 +13,13 @@ export default function AppLayout({
   children: React.ReactNode
 }) {
   const user = useSelector((state:StoreState) => state.user)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const router = useRouter()
 
-  if (!user._id) {
-    redirect("/")
-  }
+  useEffect(() => {
+    if (!user?._id) {
+      router.replace("/")
+    }
+  }, [user._id])
 
   return (
     <div className="flex h-screen flex-col md:flex-row bg-background overflow-hidden">

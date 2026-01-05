@@ -15,13 +15,13 @@ export async function POST(req: Request) {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+      return NextResponse.json({ message: "Invalid Login Credentials" }, { status: 404 });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return NextResponse.json(
-        { message: "Invalid password" },
+        { message: "Invalid Login Credentials" },
         { status: 400 }
       );
     }

@@ -79,13 +79,6 @@ export default function DashboardNav({ user }: DashboardNavProps) {
   const pathname = usePathname()
   const { logout } = useLogout()
 
-  // 🔐 Input validation
-  if (!user || !user.role) return null
-
-  const allowedNavItems = navItems.filter((item) =>
-    item.roles.includes(user.role)
-  )
-
   const handleLogout = () => {
     setIsOpen(false)
     logout()
@@ -104,6 +97,18 @@ export default function DashboardNav({ user }: DashboardNavProps) {
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [isOpen])
+
+  // 🔐 Input validation
+  const role = user?.role
+  // const firstName = user?.firstName ?? ""
+
+ const allowedNavItems = role
+  ? navItems.filter(item => item.roles.includes(role))
+  : []
+
+  if (!role) return (
+    <></>
+  )
 
   return (
     <>
@@ -152,7 +157,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
           <div className="border-y p-4 text-sm text-slate-600">
             <span className="text-sm text-muted-foreground">
               {user.firstName} •{" "}
-              <span className="capitalize">{user.role.replace("_", " ")}</span>
+              <span className="capitalize">{user.role && user.role.replace("_", " ")}</span>
             </span>
           </div>
 

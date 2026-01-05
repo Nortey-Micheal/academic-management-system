@@ -1,7 +1,5 @@
 'use client'
 
-import { requireAuth } from "@/lib/auth"
-import { redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Users, UserCheck, FileText, TrendingUp, Award, ClipboardCheck } from "lucide-react"
@@ -11,7 +9,7 @@ import AppLayout from "@/components/layouts/applayout"
 import { useSelector } from "react-redux"
 import { StoreState } from "@/lib/store"
 
-export default async function DashboardPage() {
+export default function DashboardPage() {
   const user = useSelector((state:StoreState) => state.user)
 
   // if (!user) {
@@ -119,7 +117,7 @@ export default async function DashboardPage() {
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground mt-1">
-          Welcome back, {user.name}. Here&apos;s what&apos;s happening with your school.
+          Welcome back, {user.firstName}. Here&apos;s what&apos;s happening with your school.
         </p>
       </div>
 

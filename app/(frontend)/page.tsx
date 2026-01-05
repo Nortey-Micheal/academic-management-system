@@ -1,13 +1,20 @@
-import { redirect } from "next/navigation"
-// import { getSession } from "@/lib/auth"
+'use client';
+
+import { redirect, useRouter } from "next/navigation"
 import { LoginForm } from "@/components/login-form"
+import { useSelector } from "react-redux"
+import { StoreState } from "@/lib/store"
+import { useEffect } from "react";
 
-export default async function LoginPage() {
-  // const session = await getSession()
+export default function LoginPage() {
+  const user = useSelector((state:StoreState) => state.user)
+  const router = useRouter()
 
-  // if (session) {
-  //   redirect("/dashboard")
-  // }
+  useEffect(() => {
+    if (!user?._id) {
+      router.replace("/")
+    }
+  }, [user._id])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-muted/20 to-background p-4">
