@@ -11,10 +11,10 @@ export default function LoginPage() {
   const router = useRouter()
 
   useEffect(() => {
-    if (!user?._id) {
+    if (!user?.id) {
       router.replace("/")
     }
-  }, [user._id])
+  }, [user.id])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-muted/20 to-background p-4">

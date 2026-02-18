@@ -16,10 +16,10 @@ export default function AppLayout({
   const router = useRouter()
 
   useEffect(() => {
-    if (!user?._id) {
+    if (!user?.id) {
       router.replace("/")
     }
-  }, [user._id])
+  }, [user.id])
 
   return (
     <div className="flex h-screen flex-col md:flex-row bg-background overflow-hidden">

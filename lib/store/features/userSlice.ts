@@ -1,4 +1,4 @@
-import { User } from '@/lib/auth'
+import { User } from '@/lib/generated/prisma/client'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 

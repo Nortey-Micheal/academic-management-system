@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken'
-import { User } from "@/app/(backend)/models/user/userSchema";
 import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_TOKEN as string;
@@ -9,7 +8,6 @@ const JWT_SECRET = process.env.JWT_TOKEN as string;
 export async function POST(req: Request) {
   try {
     const { firstName, lastName, email, password, role } = await req.json();
-
 
     const existing = await prisma.user.findUnique({
       where: {
@@ -26,12 +24,13 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
-      firstName,
-      lastName,
-      email,
-      password: hashedPassword,
-      role
+    const user = await prisma.user.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword,
+      }
     });
 
     const token = jwt.sign(
@@ -63,10 +62,11 @@ export async function POST(req: Request) {
     });
 
     return response;
-      } catch (err: any) {
-        return NextResponse.json(
-          { message: "Server error", error: err.message },
-          { status: 500 }
-        );
-      }
-    }
+  } catch (err: any) {
+    console.log(err)
+    return NextResponse.json(
+      { message: "Server error", error: err.message },
+      { status: 500 }
+    );
+  }
+}

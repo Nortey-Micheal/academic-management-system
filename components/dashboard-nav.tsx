@@ -13,11 +13,11 @@ import {
   Menu,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { User } from "@/lib/auth"
 import { useLogout } from "@/hooks/useLogout"
 import Image from "next/image"
 import { Button } from "./ui/button"
 import { useEffect, useState } from "react"
+import { User } from "@/lib/generated/prisma/client"
 
 interface DashboardNavProps {
   user: User
@@ -28,49 +28,49 @@ const navItems = [
     href: "/dashboard",
     label: "Dashboard",
     icon: BarChart3,
-    roles: ["admin", "headteacher", "academic_officer", "teacher"],
+    roles: ["ADMIN", "HEADTEACHER", "ACADEMIC_OFFICER", "TEACHER"],
   },
   {
     href: "/students",
     label: "Students",
     icon: Users,
-    roles: ["admin", "headteacher", "academic_officer", "teacher"],
+    roles: ["ADMIN", "HEADTEACHER", "ACADEMIC_OFFICER", "TEACHER"],
   },
   {
     href: "/classes",
     label: "Classes",
     icon: Users,
-    roles: ["admin", "headteacher"],
+    roles: ["ADMIN", "HEADTEACHER"],
   },
   {
     href: "/attendance",
     label: "Attendance",
     icon: ClipboardCheck,
-    roles: ["admin", "headteacher", "academic_officer", "teacher"],
+    roles: ["ADMIN", "HEADTEACHER", "ACADEMIC_OFFICER", "TEACHER"],
   },
   {
     href: "/assessments",
     label: "Assessments",
     icon: FileText,
-    roles: ["admin", "headteacher", "academic_officer", "teacher"],
+    roles: ["ADMIN", "HEADTEACHER", "ACADEMIC_OFFICER", "TEACHER"],
   },
   {
     href: "/reports",
     label: "Reports",
     icon: FileText,
-    roles: ["admin", "headteacher", "academic_officer"],
+    roles: ["ADMIN", "HEADTEACHER", "ACADEMIC_OFFICER"],
   },
   {
     href: "/analytics",
     label: "Analytics",
     icon: BarChart3,
-    roles: ["admin", "headteacher"],
+    roles: ["ADMIN", "HEADTEACHER"],
   },
   {
     href: "/timetable",
     label: "Timetable",
     icon: Calendar,
-    roles: ["admin", "headteacher", "academic_officer", "teacher"],
+    roles: ["ADMIN", "HEADTEACHER", "ACADEMIC_OFFICER", "TEACHER"],
   },
 ]
 
