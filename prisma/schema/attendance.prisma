@@ -1,0 +1,16 @@
+model Attendance {
+  id        String           @id @default(uuid())
+  studentId String
+  classId   String
+  date      DateTime
+  status    AttendanceStatus
+  notes     String?
+  markedBy  String
+  createdAt DateTime         @default(now())
+
+  student Student @relation(fields: [studentId], references: [id])
+  class   Class   @relation(fields: [classId], references: [id])
+  marker  User    @relation(fields: [markedBy], references: [id])
+
+  @@unique([studentId, date])
+}

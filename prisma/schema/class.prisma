@@ -1,0 +1,20 @@
+model Class {
+  id                String   @id @default(uuid())
+  className         String
+  level             String
+  section           String
+  academicYear      String
+  capacity          Int
+  currentEnrollment Int
+  classTeacherId    String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  students     Student[]
+  teachers     Teacher[]      @relation("TeacherClasses")
+  classTeacher Teacher?       @relation("ClassTeacher", fields: [classTeacherId], references: [id])
+  assessments  Assessment[]
+  attendances  Attendance[]
+  subjects     ClassSubject[]
+}

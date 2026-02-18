@@ -1,0 +1,21 @@
+model Assessment {
+  id             String         @id @default(uuid())
+  title          String
+  description    String
+  classId        String
+  subjectCode    String
+  assessmentType AssessmentType
+  totalMarks     Int
+  weight         Float
+  dueDate        DateTime
+  createdBy      String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  // Relations
+  class     Class   @relation(fields: [classId], references: [id])
+  subject   Subject @relation(fields: [subjectCode], references: [subjectCode])
+  creator   User    @relation("UserAssessmentsCreated", fields: [creatorId], references: [id])
+  creatorId String
+  grades    Grade[]
+}

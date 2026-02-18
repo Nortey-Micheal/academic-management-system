@@ -1,0 +1,13 @@
+model Teacher {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  teacherId      String   @unique
+  specialization String
+  joinDate       DateTime
+
+  user           User      @relation(fields: [userId], references: [id])
+  subjects       Subject[]
+  classes        Class[]   @relation("TeacherClasses")
+  classTeacherOf Class[]   @relation("ClassTeacher")
+  gradesGiven    Grade[]   @relation("GradedBy")
+}

@@ -1,0 +1,17 @@
+model Grade {
+  id            String   @id @default(uuid())
+  assessmentId  String
+  studentId     String
+  marksObtained Float
+  feedback      String?
+  gradedBy      String
+  gradedAt      DateTime
+  createdAt     DateTime @default(now())
+
+  // Relations
+  assessment Assessment @relation(fields: [assessmentId], references: [id])
+  student    Student    @relation(fields: [studentId], references: [id])
+  grader     Teacher    @relation("GradedBy", fields: [gradedBy], references: [id])
+
+  @@unique([assessmentId, studentId])
+}

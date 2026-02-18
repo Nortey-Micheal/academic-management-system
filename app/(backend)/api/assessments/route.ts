@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { connectToDB } from "@/lib/db/mongodb"
 import Assessment from "../../models/assessmentSchema"
 import { ObjectId } from "mongodb"
 import { z } from "zod"
+import { prisma } from "@/lib/prisma"
 
 // ---------------------
 // Validation schemas
@@ -39,20 +39,17 @@ export async function GET(request: NextRequest) {
 
     getAssessmentsSchema.parse({ classId })
 
-    await connectToDB()
-
     const query: any = {}
     if (classId) query.classId = classId
 
-    const assessments = await Assessment.find(query).sort({ dueDate: -1 })
+    const assessments = await prisma.assessment.findUnique({
+      where: {
+        ...query
+      }
+    })
 
     return NextResponse.json({
-      assessments: assessments.map((a) => ({
-        ...a.toObject(),
-        _id: a._id.toString(),
-        classId: a.classId.toString(),
-        createdBy: a.createdBy?.toString() || null,
-      })),
+      assessments: assessments!
     })
   } catch (error: any) {
     console.error("Error fetching assessments:", error)
@@ -79,8 +76,6 @@ export async function POST(request: NextRequest) {
       weight: Number(body.weight),
     })
 
-    await connectToDB()
-
     const newAssessment = {
       ...parsedData,
       classId: new ObjectId(parsedData.classId),
@@ -90,15 +85,14 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date(),
     }
 
-    const result = await Assessment.create(newAssessment)
+    const result = await prisma.assessment.create({
+      data: {
+        ...newAssessment
+      }
+    })
 
     return NextResponse.json({
-      assessment: {
-        ...result.toObject(),
-        _id: result._id.toString(),
-        classId: result.classId.toString(),
-        createdBy: result.createdBy?.toString() || null,
-      },
+      assessment: newAssessment
     }, { status: 201 })
   } catch (error: any) {
     console.error("Error creating assessment:", error)

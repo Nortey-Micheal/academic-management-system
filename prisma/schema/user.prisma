@@ -1,0 +1,64 @@
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  firstName String
+  lastName  String
+  password  String
+  phone     String?
+  role      UserRole
+  status    UserStatus @default(active)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Role-specific relations
+  studentProfile Student?
+  teacherProfile Teacher?
+
+  // Common relations
+  attendancesMarked  Attendance[]
+  assessmentsCreated Assessment[] @relation("UserAssessmentsCreated")
+}
+
+enum UserRole {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum Gender {
+  male
+  female
+}
+
+enum UserStatus {
+  active
+  inactive
+  graduated
+}
+
+enum StudentStatus {
+  active
+  inactive
+  graduated
+}
+
+enum TeacherStatus {
+  active
+  inactive
+}
+
+enum AttendanceStatus {
+  present
+  absent
+  late
+  excused
+}
+
+enum AssessmentType {
+  quiz
+  test
+  assignment
+  midterm
+  final
+  project
+}

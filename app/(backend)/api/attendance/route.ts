@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { connectToDB } from "@/lib/db/mongodb"
 import Attendance from "../../models/attendanceSchema"
 import { ObjectId } from "mongodb"
 import { z } from "zod"
+import { prisma } from "@/lib/prisma"
 
 // ---------------------
 // Validation schemas
@@ -40,26 +40,21 @@ export async function GET(request: NextRequest) {
     // Validate query
     getAttendanceSchema.parse({ classId, date })
 
-    await connectToDB()
-
     const attendanceDate = new Date(date)
     attendanceDate.setHours(0, 0, 0, 0)
 
     const nextDay = new Date(attendanceDate)
     nextDay.setDate(nextDay.getDate() + 1)
 
-    const attendance = await Attendance.find({
-      classId,
-      date: { $gte: attendanceDate, $lt: nextDay },
+    const attendance = await prisma.attendance.findMany({
+      where: {
+        classId,
+        // date: { : attendanceDate, $lt: nextDay },
+      }
     })
 
     return NextResponse.json({
-      attendance: attendance.map((a) => ({
-        ...a.toObject(),
-        _id: a._id.toString(),
-        studentId: a.studentId.toString(),
-        markedBy: a.markedBy?.toString() || null,
-      })),
+      attendance
     })
   } catch (error: any) {
     console.error("Error fetching attendance:", error)
@@ -83,8 +78,6 @@ export async function POST(request: NextRequest) {
     const parsedData = postAttendanceSchema.parse(body)
     const { classId, date, records } = parsedData
 
-    await connectToDB()
-
     const attendanceDate = new Date(date)
     attendanceDate.setHours(0, 0, 0, 0)
 
@@ -92,9 +85,11 @@ export async function POST(request: NextRequest) {
     nextDay.setDate(nextDay.getDate() + 1)
 
     // Delete existing attendance for the class & date
-    await Attendance.deleteMany({
-      classId,
-      date: { $gte: attendanceDate, $lt: nextDay },
+    await prisma.attendance.deleteMany({
+      where: {
+        classId,
+        // date: { $gte: attendanceDate, $lt: nextDay },
+      }
     })
 
     // Insert new attendance records
@@ -109,7 +104,11 @@ export async function POST(request: NextRequest) {
     }))
 
     if (attendanceRecords.length > 0) {
-      await Attendance.insertMany(attendanceRecords)
+      await prisma.attendance.createMany({
+        data: {
+          ...attendanceRecords
+        }
+      })
     }
 
     return NextResponse.json({ success: true })

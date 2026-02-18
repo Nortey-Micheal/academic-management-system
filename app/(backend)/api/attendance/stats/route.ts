@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { connectToDB } from "@/lib/db/mongodb"
-import Attendance from "@/app/(backend)/models/attendanceSchema"
 import { ObjectId } from "mongodb"
 import { z } from "zod"
+import { prisma } from "@/lib/prisma"
 
 // --------------------
 // Validation schema
@@ -40,8 +39,6 @@ export async function GET(request: NextRequest) {
 
     const parsedQuery = querySchema.parse(rawQuery)
 
-    await connectToDB()
-
     const query: any = {}
 
     if (parsedQuery.studentId) {
@@ -74,7 +71,9 @@ export async function GET(request: NextRequest) {
       query.date = { $gte: start, $lte: end }
     }
 
-    const attendance = await Attendance.find(query)
+    const attendance = await prisma.attendance.findMany({
+      where: {...query}
+    })
 
     const stats = {
       total: attendance.length,

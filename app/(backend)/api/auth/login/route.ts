@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { connectToDB } from "@/lib/db/mongodb";
-import { User } from "@/app/(backend)/models/user/userSchema";
+import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_TOKEN as string;
 
@@ -10,9 +9,11 @@ export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
 
-    await connectToDB();
-
-    const user = await User.findOne({ email });
+    const user = await prisma.user.findUnique({
+      where: {
+        email
+      }
+    });
 
     if (!user) {
       return NextResponse.json({ message: "Invalid Login Credentials" }, { status: 404 });
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
 
     const token = jwt.sign(
       {
-        id: user._id,
+        id: user.id,
         email: user.email,
         role: user.role,
       },
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
       message: "Login successful",
       token,
       user: {
-        ...user._doc,
+        ...user,
         password: undefined,
       },
     });

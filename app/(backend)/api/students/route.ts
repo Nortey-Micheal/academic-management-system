@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { connectToDB } from "@/lib/db/mongodb"
-import Student from "../../models/studentSchema"
-import ClassRoom from "../../models/classSchema"
 import { ObjectId } from "mongodb"
 import { z } from "zod"
+import { prisma } from "@/lib/prisma"
 
 // ---------------------
 // Validation schemas
@@ -40,19 +38,17 @@ export async function GET(request: NextRequest) {
 
     getStudentsSchema.parse({ classId })
 
-    await connectToDB()
-
     const query: any = {}
     if (classId) query.classId = classId
 
-    const students = await Student.find(query).sort({ lastName: 1, firstName: 1 })
+    const students = await prisma.student.findMany({
+      where: {
+        ...query
+      }
+    })
 
     return NextResponse.json({
-      students: students.map((s) => ({
-        ...s.toObject(),
-        _id: s._id.toString(),
-        classId: s.classId.toString(),
-      })),
+      students
     })
   } catch (error: any) {
     console.error("Error fetching students:", error)
@@ -75,18 +71,11 @@ export async function POST(request: NextRequest) {
     // Validate input
     const parsedData = createStudentSchema.parse(body)
 
-    await connectToDB()
-
-    // Optional: Generate studentId based on total count
-    const count = await Student.countDocuments()
-    const studentId = `STU${String(count + 1).padStart(6, "0")}`
-
     const admissionDate = parsedData.admissionDate
       ? new Date(parsedData.admissionDate)
       : new Date()
 
     const newStudent = {
-      studentId,
       firstName: parsedData.firstName,
       lastName: parsedData.lastName,
       dateOfBirth: new Date(parsedData.dateOfBirth),
@@ -102,19 +91,25 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date(),
     }
 
-    const result = await Student.create(newStudent)
+    const result = await prisma.student.create({
+      data: {
+        ...newStudent
+      }
+    })
 
     // Update class enrollment
-    await ClassRoom.updateOne(
-      { _id: new ObjectId(parsedData.classId) },
-      { $inc: { currentEnrollment: 1 } }
-    )
+    // await prisma.class.update({
+    //   where: {
+    //     id: 'parsedData.classId'
+    //   },
+    //   data: {
+      
+    //   }
+    // })
 
     return NextResponse.json({
       student: {
-        ...result.toObject(),
-        _id: result._id.toString(),
-        classId: result.classId.toString(),
+        ...result
       },
     }, { status: 201 })
   } catch (error: any) {
