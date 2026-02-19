@@ -6,6 +6,7 @@ model Subject {
   teacherId   String?
   creditHours Int
   createdAt   DateTime @default(now())
+  level       Level
 
   // Relations
   teacher     Teacher?       @relation(fields: [teacherId], references: [id])

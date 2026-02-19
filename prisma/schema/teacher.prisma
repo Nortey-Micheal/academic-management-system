@@ -10,4 +10,5 @@ model Teacher {
   classes        Class[]   @relation("TeacherClasses")
   classTeacherOf Class[]   @relation("ClassTeacher")
   gradesGiven    Grade[]   @relation("GradedBy")
+  teacherClassSubjects TeacherClassSubject[]
 }

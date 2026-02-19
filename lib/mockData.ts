@@ -1,0 +1,73 @@
+import type { SchoolClass, Subject } from './types';
+
+export const SUBJECTS: Subject[] = [
+  { id: 'math', name: 'Mathematics' },
+  { id: 'english', name: 'English Language' },
+  { id: 'science', name: 'Integrated Science' },
+  { id: 'social', name: 'Social Studies' },
+  { id: 'rme', name: 'R.M.E' },
+  { id: 'ict', name: 'ICT' },
+  { id: 'french', name: 'French' },
+  { id: 'twi', name: 'Twi' },
+  { id: 'creative_arts', name: 'Creative Arts' },
+];
+
+export const CLASSES: SchoolClass[] = [
+  {
+    id: 'class4',
+    name: 'Class 4',
+    students: [
+      { id: 1, name: 'Adjetey Prince', gender: 'male' },
+      { id: 2, name: 'Adjetey Godis Able Hanson Stephen', gender: 'male' },
+      { id: 3, name: 'Attram Kaalem Micah', gender: 'male' },
+      { id: 4, name: 'Bempah Harrison', gender: 'male' },
+      { id: 5, name: 'Kateh Bernardo', gender: 'male' },
+      { id: 6, name: 'Tartey Solomon', gender: 'male' },
+      { id: 7, name: 'Nketia Godfred', gender: 'male' },
+      { id: 8, name: 'Normenyo Alexander Deladem', gender: 'male' },
+      { id: 9, name: 'Quarshie Caleb', gender: 'male' },
+      { id: 10, name: 'Yeboah Christian', gender: 'male' },
+      { id: 11, name: 'Adjetey Regina', gender: 'female' },
+      { id: 12, name: 'Adji Afemuinvo', gender: 'female' },
+      { id: 13, name: 'Akoto Kinti', gender: 'female' },
+      { id: 14, name: 'Akoto Kimberly', gender: 'female' },
+      { id: 15, name: 'Amponsah Gaelle', gender: 'female' },
+      { id: 16, name: 'Dortey Rachael', gender: 'female' },
+      { id: 17, name: 'Korantye Olivia', gender: 'female' },
+      { id: 18, name: 'Katey Mercy', gender: 'female' },
+      { id: 19, name: 'Kwarteng Freda', gender: 'female' },
+      { id: 20, name: 'Nartey Alexandra', gender: 'female' },
+      { id: 21, name: 'Mleandane Barbara', gender: 'female' },
+    ],
+  },
+  {
+    id: 'class5',
+    name: 'Class 5',
+    students: [
+      { id: 101, name: 'Mensah David', gender: 'male' },
+      { id: 102, name: 'Owusu Kwame', gender: 'male' },
+      { id: 103, name: 'Asante Kofi', gender: 'male' },
+      { id: 104, name: 'Boateng Samuel', gender: 'male' },
+      { id: 105, name: 'Dankwa Emmanuel', gender: 'male' },
+      { id: 106, name: 'Adjei Grace', gender: 'female' },
+      { id: 107, name: 'Annan Abigail', gender: 'female' },
+      { id: 108, name: 'Badu Felicia', gender: 'female' },
+      { id: 109, name: 'Osei Priscilla', gender: 'female' },
+      { id: 110, name: 'Tetteh Josephine', gender: 'female' },
+    ],
+  },
+  {
+    id: 'class6',
+    name: 'Class 6',
+    students: [
+      { id: 201, name: 'Agyei Richard', gender: 'male' },
+      { id: 202, name: 'Frimpong Isaac', gender: 'male' },
+      { id: 203, name: 'Gyamfi Benjamin', gender: 'male' },
+      { id: 204, name: 'Appiah Daniel', gender: 'male' },
+      { id: 205, name: 'Amoah Janet', gender: 'female' },
+      { id: 206, name: 'Sarpong Lydia', gender: 'female' },
+      { id: 207, name: 'Ofori Patience', gender: 'female' },
+      { id: 208, name: 'Darko Victoria', gender: 'female' },
+    ],
+  },
+];

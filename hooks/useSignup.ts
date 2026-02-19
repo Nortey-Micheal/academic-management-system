@@ -12,7 +12,17 @@ export function useSignup() {
   const router = useRouter()
 
 
-  const signup = async ({firstName, lastName, email, password}:{firstName: string, lastName:string, email: string, password: string }) => {
+  const signup = async (payload: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    specialization?: string;
+    joinDate?: string;
+    selectedClasses?: string[];
+    selectedSubjects?: string[];
+    role?: string;
+  }) => {
     try {
       setLoading(true);
 
@@ -20,25 +30,22 @@ export function useSignup() {
         method: "POST",
         cache: "no-store",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firstName, lastName, email, password })
+        body: JSON.stringify({ ...payload })
       });
 
       const data = await res.json();
 
       if (!res.ok) {
         toast.error(data.message || "Signup failed");
-        return;
+        return false;
       }
 
       // Save user to Redux store
-      dispatch(
-        setUser(data.user)
-      );
-
-      router.push('/dashboard')
+      dispatch(setUser(data.user));
 
       toast.success("Signup successful");
 
+      return true;
     } catch (error: any) {
       toast.error("Network error");
     } finally {

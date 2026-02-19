@@ -100,3 +100,31 @@ export interface SubjectGrade {
   grade: string
   remarks: string
 }
+
+export interface SchoolClass {
+  id: string;
+  name: string;
+  students: Student[];
+}
+
+export interface Subject {
+  id: string;
+  name: string;
+}
+
+export interface Assessment {
+  studentId: number;
+  subjectId: string;
+  test1: number;
+  groupWork: number;
+  test2: number;
+  project: number;
+  exam: number;
+}
+
+export interface TaskWeights {
+  test1: number;
+  groupWork: number;
+  test2: number;
+  project: number;
+}

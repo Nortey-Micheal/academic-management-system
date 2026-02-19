@@ -5,6 +5,7 @@ model ClassSubject {
 
   class   Class   @relation(fields: [classId], references: [id])
   subject Subject @relation(fields: [subjectId], references: [id])
+  teacherAssignments TeacherClassSubject[]
 
   @@unique([classId, subjectId])
 }

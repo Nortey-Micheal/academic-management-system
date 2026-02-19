@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { connectToDB } from "@/lib/db/mongodb"
 import { ObjectId } from "mongodb"
 import { z } from "zod"
-import ClassRoom from "../../models/classSchema"
+import { prisma } from "@/lib/prisma"
 
 // ---------------------
 // Zod schema for validation
@@ -25,12 +24,14 @@ const createClassSchema = z.object({
  */
 export async function GET() {
   try {
-    await connectToDB()
-    const classes = await ClassRoom.find({}).sort({ level: 1, className: 1 })
-
+    const classes = await prisma.class.findMany({
+      include: {
+        createdAt: false,
+        updatedAt: false,
+      } 
+    })
     const formatted = classes.map((cls) => ({
-      ...cls.toObject(),
-      _id: cls._id.toString(),
+      ...cls, 
       classTeacherId: cls.classTeacherId ? cls.classTeacherId.toString() : null,
     }))
 
@@ -54,8 +55,6 @@ export async function POST(request: NextRequest) {
       capacity: Number(body.capacity), // ensure number
     })
 
-    await connectToDB()
-
     const newClassData = {
       ...parsedData,
       classTeacherId: parsedData.classTeacherId
@@ -66,16 +65,16 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date(),
     }
 
-    const result = await ClassRoom.create(newClassData)
+    const result = await prisma.class.create({
+      data: {
+        ...newClassData
+      }
+    })
 
     return NextResponse.json(
       {
         class: {
-          ...result.toObject(),
-          _id: result._id.toString(),
-          classTeacherId: result.classTeacherId
-            ? result.classTeacherId.toString()
-            : null,
+          ...result
         },
       },
       { status: 201 }

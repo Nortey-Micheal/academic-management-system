@@ -1,10 +1,10 @@
 model Class {
   id                String   @id @default(uuid())
   className         String
-  level             String
-  section           String
+  level             Level
+  section           Section @unique @default(A)
   academicYear      String
-  capacity          Int
+  capacity          Int @default(30)
   currentEnrollment Int
   classTeacherId    String?
   createdAt         DateTime @default(now())
@@ -17,4 +17,21 @@ model Class {
   assessments  Assessment[]
   attendances  Attendance[]
   subjects     ClassSubject[]
+}
+
+
+enum Level {
+  PRE_SCHOOL
+  LOWER_PRIMARY
+  UPPER_PRIMARY
+  JUNIOR_HIGH_SCHOOL
+}
+
+enum Section {
+  A
+  B
+  C
+  D
+  E
+  F
 }

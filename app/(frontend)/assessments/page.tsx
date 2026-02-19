@@ -1,16 +1,12 @@
-import { AssessmentsList } from "@/components/assessments-list"
+import AssessmentPage from "@/components/assessment-page"
+import { ClassesTable } from "@/components/classes-table"
 import AppLayout from "@/components/layouts/applayout"
 
-export default async function AssessmentsPage() {
-
+export default async function ClassesPage() {
   return (
     <AppLayout>
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Assessments & Grading</h1>
-        <p className="text-muted-foreground mt-1">Create assessments and enter student grades</p>
-      </div>
 
-      <AssessmentsList />
+      <AssessmentPage />
     </AppLayout>
   )
 }
