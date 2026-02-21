@@ -18,9 +18,9 @@ export default function AssessmentGrid({ students, selectedSubject, assessments,
   const weightsTotal = getWeightsTotal(weights);
   const weightsValid = weightsTotal === 100;
 
-  const boys = students.filter((s) => s.gender === 'male');
-  const girls = students.filter((s) => s.gender === 'female');
-  const allStudents = [...boys, ...girls];
+  const boys = students?.filter((s) => s.gender === 'male') || [];
+  const girls = students?.filter((s) => s.gender === 'female') || [];
+  // const allStudents = [...boys, ...girls];
 
   const getOrCreateAssessment = (studentId: string): Assessment => {
     return assessments[studentId] || {

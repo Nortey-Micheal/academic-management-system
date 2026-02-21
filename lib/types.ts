@@ -1,11 +1,49 @@
 import { Prisma, Student } from "./generated/prisma/client"
 
+export type FullUserType = Prisma.UserGetPayload<{
+  include: {
+    studentProfile: true,
+    teacherProfile: true
+  }
+}>
+
 export type StudentWithRelations = Prisma.StudentGetPayload<{
   include: {
     user: true
     class: true
     grades: true
     attendances: true
+  }
+}>
+
+export type ClassWithStudents = Prisma.ClassGetPayload<{
+  include: {
+    students: {
+      include: {
+        user: true
+        class: true
+        grades: true
+        attendances: true
+      }
+    }
+  }
+}>
+
+export type ClassWithStudentsAndSbjects = Prisma.ClassGetPayload<{
+  include: {
+    students: {
+      include: {
+        user: true
+        class: true
+        grades: true
+        attendances: true
+      }
+    },
+    subjects: {
+      include: {
+        subject: true
+      }
+    }
   }
 }>
 
@@ -23,7 +61,6 @@ export interface Class {
   createdAt: Date
   updatedAt: Date
 }
-
 
 export interface Teacher {
   _id?: string
@@ -47,32 +84,6 @@ export interface Attendance {
   status: "present" | "absent" | "late" | "excused"
   notes?: string
   markedBy: string
-  createdAt: Date
-}
-
-export interface Assessment {
-  _id?: string
-  title: string
-  description: string
-  classId: string
-  subjectCode: string
-  assessmentType: "quiz" | "test" | "assignment" | "midterm" | "final" | "project"
-  totalMarks: number
-  weight: number
-  dueDate: Date
-  createdBy: string
-  createdAt: Date
-  updatedAt: Date
-}
-
-export interface Grade {
-  _id?: string
-  assessmentId: string
-  studentId: string
-  marksObtained: number
-  feedback?: string
-  gradedBy: string
-  gradedAt: Date
   createdAt: Date
 }
 

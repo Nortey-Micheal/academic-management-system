@@ -1,0 +1,25 @@
+model TermAssessment {
+  id        String   @id @default(uuid())
+
+  studentId String
+  subjectId String
+  classId   String
+
+  term      Int
+  year      Int
+
+  test1     Int      @default(0)
+  groupWork Int      @default(0)
+  test2     Int      @default(0)
+  project   Int      @default(0)
+  exam      Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+  class   Class   @relation(fields: [classId], references: [id])
+
+  @@unique([studentId, subjectId, term, year])
+}

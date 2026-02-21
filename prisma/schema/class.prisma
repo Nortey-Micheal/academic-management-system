@@ -1,22 +1,32 @@
 model Class {
   id                String   @id @default(uuid())
-  className         String
+
+  // Academic Structure
   level             Level
-  section           Section @unique @default(A)
+  grade             Int
+  section           Section
   academicYear      String
-  capacity          Int @default(30)
-  currentEnrollment Int
+
+  // Capacity
+  capacity          Int      @default(30)
+  currentEnrollment Int      @default(0)
+
+  // Class Teacher (Form Teacher)
   classTeacherId    String?
+  classTeacher      Teacher? @relation("ClassTeacher", fields: [classTeacherId], references: [id])
+
+  // Relations
+  students          Student[]
+  subjects          ClassSubject[]
+  assessments       TermAssessment[]
+  attendances       Attendance[]
+
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  // Relations
-  students     Student[]
-  teachers     Teacher[]      @relation("TeacherClasses")
-  classTeacher Teacher?       @relation("ClassTeacher", fields: [classTeacherId], references: [id])
-  assessments  Assessment[]
-  attendances  Attendance[]
-  subjects     ClassSubject[]
+  @@unique([level, grade, section, academicYear])
+  @@index([academicYear])
+  @@index([level, grade])
 }
 
 

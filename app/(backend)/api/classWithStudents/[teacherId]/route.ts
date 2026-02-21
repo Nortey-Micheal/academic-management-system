@@ -1,0 +1,113 @@
+import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
+
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ teacherId: string }> }
+) {
+  try {
+    const teacherId = (await params).teacherId;
+
+    // 1️⃣ Get all class-teaching links for this teacher
+    const teacherClassSubjects = await prisma.teacherClassSubject.findMany({
+      where: { teacherId },
+      include: {
+        classSubject: {
+          include: {
+            class: {
+              include: {
+                students: {
+                  select: {
+                    id: true,
+                    gender: true,
+                    user: {
+                      select: {
+                        firstName: true,
+                        lastName: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            subject: true,
+          },
+        },
+      },
+    });
+
+    // 2️⃣ Include classes where teacher is form/class teacher
+    const formTeacherClasses = await prisma.class.findMany({
+      where: { classTeacherId: teacherId },
+      include: {
+        students: {
+          select: {
+            id: true,
+            gender: true,
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+        subjects: {
+          select: {
+            id: true,
+            subject: {
+              select: {
+                id: true,
+                subjectName: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // 3️⃣ Transform TeacherClassSubject to classes array
+    const subjectClassesMap = new Map<string, any>();
+    for (const tcs of teacherClassSubjects) {
+      const cls = tcs.classSubject.class;
+      if (!subjectClassesMap.has(cls.id)) {
+        subjectClassesMap.set(cls.id, {
+          ...cls,
+          subjects: [],
+        });
+      }
+      subjectClassesMap.get(cls.id).subjects.push(tcs.classSubject.subject);
+    }
+
+    // Merge form teacher classes (avoid duplicates)
+    for (const cls of formTeacherClasses) {
+      if (!subjectClassesMap.has(cls.id)) {
+        subjectClassesMap.set(cls.id, cls);
+      } else {
+        // Merge subjects if needed
+        cls.subjects.forEach((s) => {
+          if (
+            !subjectClassesMap
+              .get(cls.id)
+              .subjects.some((sub) => sub.id === s.subject.id)
+          ) {
+            subjectClassesMap.get(cls.id).subjects.push(s.subject);
+          }
+        });
+      }
+    }
+
+    // Convert map to array and sort by className
+    const classes = Array.from(subjectClassesMap.values()).sort((a, b) =>
+      a.className.localeCompare(b.className)
+    );
+
+    return NextResponse.json(classes);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { error: "Failed to fetch classes, subjects, and students" },
+      { status: 500 }
+    );
+  }
+}

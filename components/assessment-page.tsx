@@ -3,24 +3,30 @@
 import { useState, useEffect, useCallback } from 'react';
 import AssessmentGrid from '@/components/AssessmentGrid';
 import HeaderSelectors from '@/components/SubjectSelector';
-import { CLASSES } from '@/lib/mockData';
-import type { SchoolClass, Assessment } from '@/lib/types';
+import type { Assessment, ClassWithStudents, ClassWithStudentsAndSbjects } from '@/lib/types';
 import { Subject } from '@/lib/generated/prisma/client';
+import { useDispatch, useSelector } from 'react-redux';
+import { StoreState } from '@/lib/store';
+import { toast } from 'sonner';
+import { setClasses } from '@/lib/store/features/classesSlice';
 
 function getStorageKey(classId: string, subjectId: string) {
   return `assess_${classId}_${subjectId}`;
 }
 
 export default function AssessmentPage() {
-  const [selectedClass, setSelectedClass] = useState<SchoolClass>(CLASSES[0]);
+  const classes = useSelector((state:StoreState) => state.classes)
+  const [selectedClass, setSelectedClass] = useState<ClassWithStudentsAndSbjects | null>(classes && classes[0]);
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [assessments, setAssessments] = useState<Record<string, Assessment>>({});
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const user = useSelector((state:StoreState) => state.user)
+  const dispatch = useDispatch()
 
   // Load data when class or subject changes
   useEffect(() => {
-    const key = getStorageKey(selectedClass.id, selectedSubject?.id!);
+    const key = getStorageKey(selectedClass?.id!, selectedSubject?.id!);
     const stored = localStorage.getItem(key);
     if (stored) {
       setAssessments(JSON.parse(stored));
@@ -37,13 +43,13 @@ export default function AssessmentPage() {
 
   const handleSave = () => {
     setSaveStatus('saving');
-    const key = getStorageKey(selectedClass.id, selectedSubject?.id!);
+    const key = getStorageKey(selectedClass?.id!, selectedSubject?.id!);
     localStorage.setItem(key, JSON.stringify(assessments));
     setTimeout(() => setSaveStatus('saved'), 300);
     setTimeout(() => setSaveStatus('idle'), 2000);
   };
 
-  const handleClassChange = (cls: SchoolClass) => {
+  const handleClassChange = (cls: ClassWithStudentsAndSbjects) => {
     setSelectedClass(cls);
   };
 
@@ -52,18 +58,34 @@ export default function AssessmentPage() {
   };
 
   useEffect(() => {
-    const fetchSubjects = async() => {
+    const fetchClasses = async() => {
+    console.log(user)
         try {
-            const subjects: Subject[] = await (await fetch('/api/subjects')).json()
-            setSubjects(subjects)
-        } catch (error) {
-            
+            const response = await fetch(`/api/classWithStudents/${user.teacherProfile?.id}`)
+            const data = await response.json()
+            dispatch(setClasses(data))
+        } catch (error:any) {
+            toast.error(error)
         }
     }
+    fetchClasses()
   },[])
 
-  const boys = selectedClass.students.filter((s) => s.gender === 'male');
-  const girls = selectedClass.students.filter((s) => s.gender === 'female');
+  useEffect(() => {
+    const fetchSubjects = async() => {
+        try {
+            setSubjects(
+                selectedClass?.subjects.map((cs) => cs.subject) ?? []
+            )
+        } catch (error:any) {
+            toast.error(error)
+        }
+    }
+    fetchSubjects()
+  },[classes.length])
+
+  const boys = selectedClass?.students?.filter((s) => s.gender === 'male');
+  const girls = selectedClass?.students?.filter((s) => s.gender === 'female');
 
   return (
     <main className="min-h-screen bg-background p-4 md:p-6">
@@ -84,8 +106,8 @@ export default function AssessmentPage() {
             subjects={subjects}
             selectedSubject={selectedSubject!}
             onSubjectChange={handleSubjectChange}
-            classes={CLASSES}
-            selectedClass={selectedClass}
+            classes={classes!}
+            selectedClass={selectedClass!}
             onClassChange={handleClassChange}
           />
 
@@ -103,13 +125,13 @@ export default function AssessmentPage() {
         <div className="flex flex-wrap items-center justify-between gap-4 mb-3 text-xs text-foreground">
           <div className="flex items-center gap-6">
             <span>
-              <span className="font-bold">NO. ON ROLL:</span> {selectedClass.students.length}
+              <span className="font-bold">NO. ON ROLL:</span> {selectedClass?.students.length}
             </span>
             <span>
-              <span className="font-bold">BOYS:</span> {boys.length}
+              <span className="font-bold">BOYS:</span> {boys?.length!}
             </span>
             <span>
-              <span className="font-bold">GIRLS:</span> {girls.length}
+              <span className="font-bold">GIRLS:</span> {girls?.length!}
             </span>
           </div>
 
@@ -131,7 +153,7 @@ export default function AssessmentPage() {
 
         {/* Grid */}
         <AssessmentGrid
-          students={selectedClass.students}
+          students={selectedClass?.students!}
           selectedSubject={selectedSubject!}
           assessments={assessments}
           onAssessmentChange={handleAssessmentChange}

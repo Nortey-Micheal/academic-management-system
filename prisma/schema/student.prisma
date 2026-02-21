@@ -15,4 +15,5 @@ model Student {
   class       Class        @relation(fields: [classId], references: [id])
   grades      Grade[]
   attendances Attendance[]
+  assessments  TermAssessment[]
 }

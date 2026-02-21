@@ -1,18 +1,18 @@
-import { User } from '@/lib/generated/prisma/client'
+import { FullUserType } from '@/lib/types'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 
-const initialState: User = {} as User
+const initialState: FullUserType = {} as FullUserType
 
 const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setUser: (_state: User | null, action: PayloadAction<User>) => {
-      return action.payload as User
+    setUser: (_state: FullUserType | null, action: PayloadAction<FullUserType>) => {
+      return action.payload as FullUserType
     },
     clearUser: () => {
-      return {} as User
+      return {} as FullUserType
     },
   },
 })

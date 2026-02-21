@@ -1,15 +1,16 @@
 'use client';
 
 import { Subject } from '@/lib/generated/prisma/client';
-import type { SchoolClass } from '@/lib/types';
+import type { ClassWithStudentsAndSbjects } from '@/lib/types';
+import { toast } from 'sonner';
 
 interface Props {
   subjects: Subject[];
   selectedSubject: Subject;
   onSubjectChange: (subject: Subject) => void;
-  classes: SchoolClass[];
-  selectedClass: SchoolClass;
-  onClassChange: (cls: SchoolClass) => void;
+  classes: ClassWithStudentsAndSbjects[];
+  selectedClass: ClassWithStudentsAndSbjects;
+  onClassChange: (cls: ClassWithStudentsAndSbjects) => void;
 }
 
 export default function HeaderSelectors({
@@ -20,6 +21,7 @@ export default function HeaderSelectors({
   selectedClass,
   onClassChange,
 }: Props) {
+  classes.length > 0 && toast('cLASEES')
   return (
     <div className="flex flex-wrap items-center gap-6 text-sm">
       <div className="flex items-center gap-2">
@@ -28,16 +30,16 @@ export default function HeaderSelectors({
         </label>
         <select
           id="class-select"
-          value={selectedClass.id}
+          value={selectedClass?.id!}
           onChange={(e) => {
             const cls = classes.find((c) => c.id === e.target.value);
             if (cls) onClassChange(cls);
           }}
           className="px-2 py-1 border border-foreground text-xs font-medium text-foreground bg-background focus:outline-none focus:ring-1 focus:ring-accent"
         >
-          {classes.map((cls) => (
+          {classes.length > 0 && classes?.map((cls) => (
             <option key={cls.id} value={cls.id}>
-              {cls.name}
+              Basic {`${cls.grade}`}
             </option>
           ))}
         </select>

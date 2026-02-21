@@ -9,7 +9,6 @@ model Grade {
   createdAt     DateTime @default(now())
 
   // Relations
-  assessment Assessment @relation(fields: [assessmentId], references: [id])
   student    Student    @relation(fields: [studentId], references: [id])
   grader     Teacher    @relation("GradedBy", fields: [gradedBy], references: [id])
 

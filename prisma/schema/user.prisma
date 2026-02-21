@@ -16,7 +16,6 @@ model User {
 
   // Common relations
   attendancesMarked  Attendance[]
-  assessmentsCreated Assessment[] @relation("UserAssessmentsCreated")
 }
 
 enum UserRole {

@@ -286,7 +286,7 @@ export default function SignupPage() {
                               : "border-border bg-background hover:border-primary/50"
                           }`}
                         >
-                          <div className="font-semibold">{c.className}</div>
+                          <div className="font-semibold">Basic {c.grade}</div>
                           <div className="text-xs opacity-75">{c.level}</div>
                         </button>
                       ))

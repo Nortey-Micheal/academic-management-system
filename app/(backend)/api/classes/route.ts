@@ -25,20 +25,33 @@ const createClassSchema = z.object({
 export async function GET() {
   try {
     const classes = await prisma.class.findMany({
-      include: {
-        createdAt: false,
-        updatedAt: false,
-      } 
-    })
-    const formatted = classes.map((cls) => ({
-      ...cls, 
-      classTeacherId: cls.classTeacherId ? cls.classTeacherId.toString() : null,
-    }))
+      select: {
+        id: true,
+        level: true,
+        grade: true,
+        section: true,
+        academicYear: true,
+        capacity: true,
+        currentEnrollment: true,
+        classTeacherId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: [
+        { level: "asc" },
+        { grade: "asc" },
+        { section: "asc" },
+      ],
+    });
 
     return NextResponse.json({ classes })
+
   } catch (error) {
     console.error("Error fetching classes:", error)
-    return NextResponse.json({ error: "Failed to fetch classes" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to fetch classes" },
+      { status: 500 }
+    )
   }
 }
 

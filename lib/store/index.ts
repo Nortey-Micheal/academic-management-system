@@ -3,10 +3,12 @@ import { persistReducer, persistStore } from 'redux-persist'
 import storage from 'redux-persist/lib/storage' // defaults to localStorage
 import userReducer from './features/userSlice'
 import caseReducer from './features/caseSlice'
+import classesReducer from './features/classesSlice'
 
 const rootReducer = combineReducers({
   user: userReducer,
   cases: caseReducer,
+  classes: classesReducer,
 })
 
 const persistConfig = {
