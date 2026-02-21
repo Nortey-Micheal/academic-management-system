@@ -1,20 +1,14 @@
-export interface Student {
-  _id?: string
-  studentId: string
-  firstName: string
-  lastName: string
-  dateOfBirth: Date
-  gender: "male" | "female"
-  classId: string
-  guardianName: string
-  guardianPhone: string
-  guardianEmail: string
-  address: string
-  admissionDate: Date
-  status: "active" | "inactive" | "graduated"
-  createdAt: Date
-  updatedAt: Date
-}
+import { Prisma, Student } from "./generated/prisma/client"
+
+export type StudentWithRelations = Prisma.StudentGetPayload<{
+  include: {
+    user: true
+    class: true
+    grades: true
+    attendances: true
+  }
+}>
+
 
 export interface Class {
   _id?: string
@@ -30,15 +24,6 @@ export interface Class {
   updatedAt: Date
 }
 
-export interface Subject {
-  _id?: string
-  subjectCode: string
-  subjectName: string
-  description: string
-  teacherId?: string
-  creditHours: number
-  createdAt: Date
-}
 
 export interface Teacher {
   _id?: string
@@ -104,12 +89,7 @@ export interface SubjectGrade {
 export interface SchoolClass {
   id: string;
   name: string;
-  students: Student[];
-}
-
-export interface Subject {
-  id: string;
-  name: string;
+  students: StudentWithRelations[];
 }
 
 export interface Assessment {

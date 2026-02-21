@@ -1,0 +1,592 @@
+{
+  "classes": [
+    {
+      "id": "basic4",
+      "name": "Basic 4",
+      "students": [
+        {
+          "id": "s1",
+          "name": "Kwame Owusu",
+          "age": 10,
+          "attendance": "92%",
+          "term": "1",
+          "academicPeriod": "2024/2025",
+          "termEnding": "17/10/2024",
+          "nextTermBegins": "02/11/2024",
+          "promotedTo": "Basic 5",
+          "conduct": "Very Good",
+          "attitude": "Excellent",
+          "classTeacherRemark": "Kwame has shown great improvement in his studies. He is attentive in class and participates actively. Keep up the good work!",
+          "subjects": [
+            {
+              "name": "English Language",
+              "classScore": 45,
+              "examsScore": 42,
+              "totalScore": 87,
+              "grade": "A",
+              "remarks": "sion and writing skills"
+            },
+            {
+              "name": "Mathematics",
+              "classScore": 42,
+              "examsScore": 38,
+              "totalScore": 80,
+              "grade": "II",
+              "remarks": "of concepts, needs practice in word problems"
+            },
+            {
+              "name": "Science",
+              "classScore": 44,
+              "examsScore": 40,
+              "totalScore": 84,
+              "grade": "A",
+              "remarks": "entific principles and practical work"
+            },
+            {
+              "name": "Social Studies",
+              "classScore": 43,
+              "examsScore": 41,
+              "totalScore": 84,
+              "grade": "A",
+              "remarks": " of geography and history"
+            },
+            {
+              "name": "Integrated Science",
+              "classScore": 41,
+              "examsScore": 39,
+              "totalScore": 80,
+              "grade": "II",
+              "remarks": "mance with room for improvement"
+            },
+            {
+              "name": "Creative Arts",
+              "classScore": 48,
+              "examsScore": 45,
+              "totalScore": 93,
+              "grade": "A+",
+              "remarks": "ity and artistic expression"
+            },
+            {
+              "name": "Physical Education",
+              "classScore": 46,
+              "examsScore": 44,
+              "totalScore": 90,
+              "grade": "A+",
+              "remarks": "fitness and sportsmanship"
+            },
+            {
+              "name": "Information Technology",
+              "classScore": 41,
+              "examsScore": 39,
+              "totalScore": 80,
+              "grade": "II",
+              "remarks": " skills"
+            },
+            {
+              "name": "Religious & Moral Education",
+              "classScore": 43,
+              "examsScore": 40,
+              "totalScore": 83,
+              "grade": "A",
+              "remarks": " and understanding"
+            },
+            {
+              "name": "French Language",
+              "classScore": 40,
+              "examsScore": 37,
+              "totalScore": 77,
+              "grade": "II",
+              "remarks": " in pronunciation"
+            }
+          ]
+        },
+        {
+          "id": "s2",
+          "name": "Ama Boateng",
+          "age": 10,
+          "attendance": "95%",
+          "term": "1",
+          "academicPeriod": "2024/2025",
+          "termEnding": "17/10/2024",
+          "nextTermBegins": "02/11/2024",
+          "promotedTo": "Basic 5",
+          "conduct": "Excellent",
+          "attitude": "Excellent",
+          "classTeacherRemark": "Ama is a diligent and hardworking student. She demonstrates exceptional commitment to her studies and sets a good example for her peers.",
+          "subjects": [
+            {
+              "name": "English Language",
+              "classScore": 48,
+              "examsScore": 45,
+              "totalScore": 93,
+              "grade": "A+",
+              "remarks": " and writing abilities"
+            },
+            {
+              "name": "Mathematics",
+              "classScore": 45,
+              "examsScore": 42,
+              "totalScore": 87,
+              "grade": "A",
+              "remarks": "olving skills"
+            },
+            {
+              "name": "Science",
+              "classScore": 46,
+              "examsScore": 43,
+              "totalScore": 89,
+              "grade": "A",
+              "remarks": " theory and practical work"
+            },
+            {
+              "name": "Social Studies",
+              "classScore": 47,
+              "examsScore": 44,
+              "totalScore": 91,
+              "grade": "A+",
+              "remarks": "f all topics covered"
+            },
+            {
+              "name": "Integrated Science",
+              "classScore": 44,
+              "examsScore": 41,
+              "totalScore": 85,
+              "grade": "A",
+              "remarks": " with good practical skills"
+            },
+            {
+              "name": "Creative Arts",
+              "classScore": 46,
+              "examsScore": 43,
+              "totalScore": 89,
+              "grade": "A",
+              "remarks": "skills and creativity"
+            },
+            {
+              "name": "Physical Education",
+              "classScore": 47,
+              "examsScore": 44,
+              "totalScore": 91,
+              "grade": "A+",
+              "remarks": "c ability and participation"
+            },
+            {
+              "name": "Information Technology",
+              "classScore": 45,
+              "examsScore": 43,
+              "totalScore": 88,
+              "grade": "A",
+              "remarks": "skills and understanding"
+            },
+            {
+              "name": "Religious & Moral Education",
+              "classScore": 46,
+              "examsScore": 44,
+              "totalScore": 90,
+              "grade": "A+",
+              "remarks": " ethical understanding"
+            },
+            {
+              "name": "French Language",
+              "classScore": 44,
+              "examsScore": 42,
+              "totalScore": 86,
+              "grade": "A",
+              "remarks": "ench language learning"
+            }
+          ]
+        },
+        {
+          "id": "s3",
+          "name": "Kofi Mensah",
+          "age": 11,
+          "attendance": "88%",
+          "term": "1",
+          "academicPeriod": "2024/2025",
+          "termEnding": "17/10/2024",
+          "nextTermBegins": "02/11/2024",
+          "promotedTo": "Basic 5",
+          "conduct": "Good",
+          "attitude": "Good",
+          "classTeacherRemark": "Kofi is making steady progress. He needs to improve his concentration during lessons and complete all assignments on time.",
+          "subjects": [
+            {
+              "name": "English Language",
+              "classScore": 38,
+              "examsScore": 35,
+              "totalScore": 73,
+              "grade": "II",
+              "remarks": "n spelling and punctuation"
+            },
+            {
+              "name": "Mathematics",
+              "classScore": 40,
+              "examsScore": 37,
+              "totalScore": 77,
+              "grade": "II",
+              "remarks": "tions, needs extra practice"
+            },
+            {
+              "name": "Science",
+              "classScore": 39,
+              "examsScore": 36,
+              "totalScore": 75,
+              "grade": "II",
+              "remarks": "ds to study harder"
+            },
+            {
+              "name": "Social Studies",
+              "classScore": 41,
+              "examsScore": 38,
+              "totalScore": 79,
+              "grade": "II",
+              "remarks": "mance"
+            },
+            {
+              "name": "Integrated Science",
+              "classScore": 37,
+              "examsScore": 35,
+              "totalScore": 72,
+              "grade": "II",
+              "remarks": "d dedication"
+            },
+            {
+              "name": "Creative Arts",
+              "classScore": 42,
+              "examsScore": 40,
+              "totalScore": 82,
+              "grade": "A",
+              "remarks": "ative subjects"
+            },
+            {
+              "name": "Physical Education",
+              "classScore": 39,
+              "examsScore": 37,
+              "totalScore": 76,
+              "grade": "II",
+              "remarks": "rticipation in sports"
+            },
+            {
+              "name": "Information Technology",
+              "classScore": 38,
+              "examsScore": 36,
+              "totalScore": 74,
+              "grade": "II",
+              "remarks": " with computer basics"
+            },
+            {
+              "name": "Religious & Moral Education",
+              "classScore": 40,
+              "examsScore": 37,
+              "totalScore": 77,
+              "grade": "II",
+              "remarks": "tanding of moral concepts"
+            },
+            {
+              "name": "French Language",
+              "classScore": 36,
+              "examsScore": 34,
+              "totalScore": 70,
+              "grade": "II",
+              "remarks": "guage concepts, needs tutoring"
+            }
+          ]
+        },
+        {
+          "id": "s4",
+          "name": "Abena Kwesi",
+          "age": 10,
+          "attendance": "96%",
+          "term": "1",
+          "academicPeriod": "2024/2025",
+          "termEnding": "17/10/2024",
+          "nextTermBegins": "02/11/2024",
+          "promotedTo": "Basic 5",
+          "conduct": "Excellent",
+          "attitude": "Excellent",
+          "classTeacherRemark": "Abena is a well-behaved and motivated student with a strong work ethic. She is a role model to others and shows consistent excellence.",
+          "subjects": [
+            {
+              "name": "English Language",
+              "classScore": 47,
+              "examsScore": 44,
+              "totalScore": 91,
+              "grade": "A+",
+              "remarks": "cation skills"
+            },
+            {
+              "name": "Mathematics",
+              "classScore": 46,
+              "examsScore": 43,
+              "totalScore": 89,
+              "grade": "A",
+              "remarks": "tical reasoning"
+            },
+            {
+              "name": "Science",
+              "classScore": 45,
+              "examsScore": 42,
+              "totalScore": 87,
+              "grade": "A",
+              "remarks": "ding of scientific concepts"
+            },
+            {
+              "name": "Social Studies",
+              "classScore": 46,
+              "examsScore": 43,
+              "totalScore": 89,
+              "grade": "A",
+              "remarks": "ge and participation"
+            },
+            {
+              "name": "Integrated Science",
+              "classScore": 45,
+              "examsScore": 42,
+              "totalScore": 87,
+              "grade": "A",
+              "remarks": "across all areas"
+            },
+            {
+              "name": "Creative Arts",
+              "classScore": 44,
+              "examsScore": 41,
+              "totalScore": 85,
+              "grade": "A",
+              "remarks": "development"
+            },
+            {
+              "name": "Physical Education",
+              "classScore": 46,
+              "examsScore": 43,
+              "totalScore": 89,
+              "grade": "A",
+              "remarks": "performance and coordination"
+            },
+            {
+              "name": "Information Technology",
+              "classScore": 45,
+              "examsScore": 42,
+              "totalScore": 87,
+              "grade": "A",
+              "remarks": "skills and applications"
+            },
+            {
+              "name": "Religious & Moral Education",
+              "classScore": 47,
+              "examsScore": 44,
+              "totalScore": 91,
+              "grade": "A+",
+              "remarks": "racter and understanding"
+            },
+            {
+              "name": "French Language",
+              "classScore": 45,
+              "examsScore": 42,
+              "totalScore": 87,
+              "grade": "A",
+              "remarks": "in French language studies"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "basic5",
+      "name": "Basic 5",
+      "students": [
+        {
+          "id": "s5",
+          "name": "Yaw Appiah",
+          "age": 11,
+          "attendance": "90%",
+          "term": "1",
+          "academicPeriod": "2024/2025",
+          "termEnding": "17/10/2024",
+          "nextTermBegins": "02/11/2024",
+          "promotedTo": "Basic 6",
+          "conduct": "Good",
+          "attitude": "Good",
+          "classTeacherRemark": "Yaw has performed well this term. He is cooperative and shows good leadership qualities. Continue to maintain discipline.",
+          "subjects": [
+            {
+              "name": "English Language",
+              "classScore": 44,
+              "examsScore": 41,
+              "totalScore": 85,
+              "grade": "A",
+              "remarks": "mprehension skills"
+            },
+            {
+              "name": "Mathematics",
+              "classScore": 43,
+              "examsScore": 40,
+              "totalScore": 83,
+              "grade": "A",
+              "remarks": "ematical concepts"
+            },
+            {
+              "name": "Science",
+              "classScore": 42,
+              "examsScore": 40,
+              "totalScore": 82,
+              "grade": "A",
+              "remarks": "theoretical knowledge"
+            },
+            {
+              "name": "Social Studies",
+              "classScore": 43,
+              "examsScore": 41,
+              "totalScore": 84,
+              "grade": "A",
+              "remarks": "historical and geographical facts"
+            },
+            {
+              "name": "Integrated Science",
+              "classScore": 41,
+              "examsScore": 39,
+              "totalScore": 80,
+              "grade": "II",
+              "remarks": "mance"
+            },
+            {
+              "name": "Creative Arts",
+              "classScore": 45,
+              "examsScore": 43,
+              "totalScore": 88,
+              "grade": "A",
+              "remarks": "expression"
+            },
+            {
+              "name": "Physical Education",
+              "classScore": 43,
+              "examsScore": 41,
+              "totalScore": 84,
+              "grade": "A",
+              "remarks": "cipation and fitness"
+            },
+            {
+              "name": "Information Technology",
+              "classScore": 42,
+              "examsScore": 40,
+              "totalScore": 82,
+              "grade": "A",
+              "remarks": "ls and technical understanding"
+            },
+            {
+              "name": "Religious & Moral Education",
+              "classScore": 44,
+              "examsScore": 42,
+              "totalScore": 86,
+              "grade": "A",
+              "remarks": "nd ethical understanding"
+            },
+            {
+              "name": "French Language",
+              "classScore": 41,
+              "examsScore": 39,
+              "totalScore": 80,
+              "grade": "II",
+              "remarks": "ge learning progress"
+            }
+          ]
+        },
+        {
+          "id": "s6",
+          "name": "Nadia Adjei",
+          "age": 11,
+          "attendance": "93%",
+          "term": "1",
+          "academicPeriod": "2024/2025",
+          "termEnding": "17/10/2024",
+          "nextTermBegins": "02/11/2024",
+          "promotedTo": "Basic 6",
+          "conduct": "Excellent",
+          "attitude": "Excellent",
+          "classTeacherRemark": "Nadia is an exemplary student showing outstanding performance across all subjects. Her dedication and discipline are commendable.",
+          "subjects": [
+            {
+              "name": "English Language",
+              "classScore": 49,
+              "examsScore": 46,
+              "totalScore": 95,
+              "grade": "A+",
+              "remarks": "ance in all language skills"
+            },
+            {
+              "name": "Mathematics",
+              "classScore": 48,
+              "examsScore": 45,
+              "totalScore": 93,
+              "grade": "A+",
+              "remarks": "tical ability"
+            },
+            {
+              "name": "Science",
+              "classScore": 47,
+              "examsScore": 44,
+              "totalScore": 91,
+              "grade": "A+",
+              "remarks": "heory and practical experiments"
+            },
+            {
+              "name": "Social Studies",
+              "classScore": 48,
+              "examsScore": 45,
+              "totalScore": 93,
+              "grade": "A+",
+              "remarks": "ge and analytical skills"
+            },
+            {
+              "name": "Integrated Science",
+              "classScore": 46,
+              "examsScore": 43,
+              "totalScore": 89,
+              "grade": "A",
+              "remarks": "all integrated science topics"
+            },
+            {
+              "name": "Creative Arts",
+              "classScore": 47,
+              "examsScore": 44,
+              "totalScore": 91,
+              "grade": "A+",
+              "remarks": "ity and artistic skill"
+            },
+            {
+              "name": "Physical Education",
+              "classScore": 48,
+              "examsScore": 46,
+              "totalScore": 94,
+              "grade": "A+",
+              "remarks": "c excellence and leadership"
+            },
+            {
+              "name": "Information Technology",
+              "classScore": 47,
+              "examsScore": 45,
+              "totalScore": 92,
+              "grade": "A+",
+              "remarks": "and IT skills"
+            },
+            {
+              "name": "Religious & Moral Education",
+              "classScore": 49,
+              "examsScore": 46,
+              "totalScore": 95,
+              "grade": "A+",
+              "remarks": "racter and leadership"
+            },
+            {
+              "name": "French Language",
+              "classScore": 48,
+              "examsScore": 45,
+              "totalScore": 93,
+              "grade": "A+",
+              "remarks": "ency in French language"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

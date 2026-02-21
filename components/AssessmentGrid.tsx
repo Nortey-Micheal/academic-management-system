@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import ScoreCell from './ScoreCell';
 import { DEFAULT_WEIGHTS, getCalculatedValues, getWeightsTotal } from '@/lib/calculations';
-import type { Student, Subject, Assessment, TaskWeights } from '@/lib/types';
+import type { Assessment, TaskWeights, StudentWithRelations } from '@/lib/types';
+import { Subject } from '@/lib/generated/prisma/client';
 
 interface Props {
-  students: Student[];
+  students: StudentWithRelations[];
   selectedSubject: Subject;
   assessments: Record<string, Assessment>;
-  onAssessmentChange: (studentId: number, assessment: Assessment) => void;
+  onAssessmentChange: (studentId: string, assessment: Assessment) => void;
 }
 
 export default function AssessmentGrid({ students, selectedSubject, assessments, onAssessmentChange }: Props) {
@@ -21,10 +22,10 @@ export default function AssessmentGrid({ students, selectedSubject, assessments,
   const girls = students.filter((s) => s.gender === 'female');
   const allStudents = [...boys, ...girls];
 
-  const getOrCreateAssessment = (studentId: number): Assessment => {
+  const getOrCreateAssessment = (studentId: string): Assessment => {
     return assessments[studentId] || {
       studentId,
-      subjectId: selectedSubject.id,
+      subjectId: selectedSubject?.id!,
       test1: 0,
       groupWork: 0,
       test2: 0,
@@ -33,7 +34,7 @@ export default function AssessmentGrid({ students, selectedSubject, assessments,
     };
   };
 
-  const handleScoreChange = (studentId: number, field: keyof Assessment, value: number) => {
+  const handleScoreChange = (studentId: string, field: keyof Assessment, value: number) => {
     const assessment = getOrCreateAssessment(studentId);
     const updated = { ...assessment, [field]: value };
     onAssessmentChange(studentId, updated);
@@ -44,15 +45,15 @@ export default function AssessmentGrid({ students, selectedSubject, assessments,
     setWeights((prev) => ({ ...prev, [field]: Math.max(0, num) }));
   };
 
-  const renderStudentRow = (student: Student, displayIndex: number) => {
-    const assessment = getOrCreateAssessment(student.id);
+  const renderStudentRow = (student: StudentWithRelations, displayIndex: number) => {
+    const assessment = getOrCreateAssessment(student?.id!);
     const { taskSubtotal, taskPercent, examPercent, totalScore, grade } = getCalculatedValues(assessment, weights);
 
     return (
       <tr key={student.id} className="border border-foreground/30">
         <td className="border border-foreground/30 px-1 py-0.5 text-center w-8">{displayIndex}</td>
-        <td className="border border-foreground/30 px-2 py-0.5 text-left truncate max-w-[160px]" title={student.name}>
-          {student.name}
+        <td className="border border-foreground/30 px-2 py-0.5 text-left truncate max-w-[160px]" title={student.user?.lastName! + " " + student.user?.firstName!}>
+          {student.user?.lastName! + " " + student.user?.firstName!}
         </td>
         <td className="border border-foreground/30 p-0 text-center w-14">
           <ScoreCell value={assessment.test1} max={weights.test1} onChange={(v) => handleScoreChange(student.id, 'test1', v)} />

@@ -1,6 +1,7 @@
 'use client';
 
-import type { Subject, SchoolClass } from '@/lib/types';
+import { Subject } from '@/lib/generated/prisma/client';
+import type { SchoolClass } from '@/lib/types';
 
 interface Props {
   subjects: Subject[];
@@ -47,7 +48,7 @@ export default function HeaderSelectors({
         </label>
         <select
           id="subject-select"
-          value={selectedSubject.id}
+          value={selectedSubject?.id!}
           onChange={(e) => {
             const subject = subjects.find((s) => s.id === e.target.value);
             if (subject) onSubjectChange(subject);
@@ -56,7 +57,7 @@ export default function HeaderSelectors({
         >
           {subjects.map((subject) => (
             <option key={subject.id} value={subject.id}>
-              {subject.name}
+              {subject.subjectName}
             </option>
           ))}
         </select>

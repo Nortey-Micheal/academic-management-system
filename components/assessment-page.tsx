@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import AssessmentGrid from '@/components/AssessmentGrid';
 import HeaderSelectors from '@/components/SubjectSelector';
-import { SUBJECTS, CLASSES } from '@/lib/mockData';
-import type { Subject, SchoolClass, Assessment } from '@/lib/types';
+import { CLASSES } from '@/lib/mockData';
+import type { SchoolClass, Assessment } from '@/lib/types';
+import { Subject } from '@/lib/generated/prisma/client';
 
 function getStorageKey(classId: string, subjectId: string) {
   return `assess_${classId}_${subjectId}`;
@@ -12,13 +13,14 @@ function getStorageKey(classId: string, subjectId: string) {
 
 export default function AssessmentPage() {
   const [selectedClass, setSelectedClass] = useState<SchoolClass>(CLASSES[0]);
-  const [selectedSubject, setSelectedSubject] = useState<Subject>(SUBJECTS[0]);
+  const [subjects, setSubjects] = useState<Subject[]>([])
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [assessments, setAssessments] = useState<Record<string, Assessment>>({});
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
   // Load data when class or subject changes
   useEffect(() => {
-    const key = getStorageKey(selectedClass.id, selectedSubject.id);
+    const key = getStorageKey(selectedClass.id, selectedSubject?.id!);
     const stored = localStorage.getItem(key);
     if (stored) {
       setAssessments(JSON.parse(stored));
@@ -28,14 +30,14 @@ export default function AssessmentPage() {
     setSaveStatus('idle');
   }, [selectedClass, selectedSubject]);
 
-  const handleAssessmentChange = useCallback((studentId: number, assessment: Assessment) => {
+  const handleAssessmentChange = useCallback((studentId: string, assessment: Assessment) => {
     setAssessments((prev) => ({ ...prev, [studentId]: assessment }));
     setSaveStatus('idle');
   }, []);
 
   const handleSave = () => {
     setSaveStatus('saving');
-    const key = getStorageKey(selectedClass.id, selectedSubject.id);
+    const key = getStorageKey(selectedClass.id, selectedSubject?.id!);
     localStorage.setItem(key, JSON.stringify(assessments));
     setTimeout(() => setSaveStatus('saved'), 300);
     setTimeout(() => setSaveStatus('idle'), 2000);
@@ -48,6 +50,17 @@ export default function AssessmentPage() {
   const handleSubjectChange = (subject: Subject) => {
     setSelectedSubject(subject);
   };
+
+  useEffect(() => {
+    const fetchSubjects = async() => {
+        try {
+            const subjects: Subject[] = await (await fetch('/api/subjects')).json()
+            setSubjects(subjects)
+        } catch (error) {
+            
+        }
+    }
+  },[])
 
   const boys = selectedClass.students.filter((s) => s.gender === 'male');
   const girls = selectedClass.students.filter((s) => s.gender === 'female');
@@ -68,8 +81,8 @@ export default function AssessmentPage() {
         {/* Info bar */}
         <div className="border border-foreground/30 p-3 mb-4 flex flex-wrap items-center justify-between gap-4">
           <HeaderSelectors
-            subjects={SUBJECTS}
-            selectedSubject={selectedSubject}
+            subjects={subjects}
+            selectedSubject={selectedSubject!}
             onSubjectChange={handleSubjectChange}
             classes={CLASSES}
             selectedClass={selectedClass}
@@ -119,7 +132,7 @@ export default function AssessmentPage() {
         {/* Grid */}
         <AssessmentGrid
           students={selectedClass.students}
-          selectedSubject={selectedSubject}
+          selectedSubject={selectedSubject!}
           assessments={assessments}
           onAssessmentChange={handleAssessmentChange}
         />

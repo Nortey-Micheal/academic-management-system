@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
-import { ReportCardGenerator } from "@/components/report-card-generator"
+import ReportCardGenerator from "@/components/report-card-generator"
 import AppLayout from "@/components/layouts/applayout"
 
 export default async function ReportsPage() {
