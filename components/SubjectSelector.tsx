@@ -1,16 +1,16 @@
 'use client';
 
 import { Subject } from '@/lib/generated/prisma/client';
-import type { ClassWithStudentsAndSbjects } from '@/lib/types';
+import type { ClassWithStudentsAndSubjects } from '@/lib/types';
 import { toast } from 'sonner';
 
 interface Props {
   subjects: Subject[];
   selectedSubject: Subject;
   onSubjectChange: (subject: Subject) => void;
-  classes: ClassWithStudentsAndSbjects[];
-  selectedClass: ClassWithStudentsAndSbjects;
-  onClassChange: (cls: ClassWithStudentsAndSbjects) => void;
+  classes: ClassWithStudentsAndSubjects[];
+  selectedClass: ClassWithStudentsAndSubjects;
+  onClassChange: (cls: ClassWithStudentsAndSubjects) => void;
 }
 
 export default function HeaderSelectors({
@@ -21,7 +21,6 @@ export default function HeaderSelectors({
   selectedClass,
   onClassChange,
 }: Props) {
-  classes.length > 0 && toast('cLASEES')
   return (
     <div className="flex flex-wrap items-center gap-6 text-sm">
       <div className="flex items-center gap-2">
@@ -58,8 +57,8 @@ export default function HeaderSelectors({
           className="px-2 py-1 border border-foreground text-xs font-medium text-foreground bg-background focus:outline-none focus:ring-1 focus:ring-accent"
         >
           {subjects.map((subject) => (
-            <option key={subject.id} value={subject.id}>
-              {subject.subjectName}
+            <option key={subject?.id!} value={subject?.id!}>
+              {subject?.subjectName!}
             </option>
           ))}
         </select>

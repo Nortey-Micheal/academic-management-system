@@ -1,0 +1,23 @@
+model AcademicYear {
+  id        String   @id @default(uuid())
+  year      String   @unique
+  isActive  Boolean  @default(false)
+
+  terms     Term[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Term {
+  id             String   @id @default(uuid())
+  termNumber     Int
+  academicYearId String
+  isActive       Boolean  @default(false)
+
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([termNumber, academicYearId])
+
+}

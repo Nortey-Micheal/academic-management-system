@@ -1,4 +1,4 @@
-import { ClassWithStudentsAndSbjects as Class } from "@/lib/types";
+import { ClassWithStudentsAndSubjects as Class } from "@/lib/types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 

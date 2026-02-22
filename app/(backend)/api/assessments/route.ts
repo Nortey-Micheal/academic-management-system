@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import Assessment from "../../models/assessmentSchema"
-import { ObjectId } from "mongodb"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 
@@ -42,14 +40,11 @@ export async function GET(request: NextRequest) {
     const query: any = {}
     if (classId) query.classId = classId
 
-    const assessments = await prisma.assessment.findUnique({
-      where: {
-        ...query
-      }
-    })
+    // c
+    
 
     return NextResponse.json({
-      assessments: assessments!
+      // assessments: assessments!
     })
   } catch (error: any) {
     console.error("Error fetching assessments:", error)
@@ -64,47 +59,82 @@ export async function GET(request: NextRequest) {
 
 // ---------------------
 // POST: Create a new assessment
-// ---------------------
-export async function POST(request: NextRequest) {
+// ----------------------
+
+
+type AssessmentRecord = {
+  studentId: string;
+  subjectId: string;
+  classId: string;
+  test1: number;
+  test2: number;
+  groupWork: number;
+  project: number;
+  exam: number;
+};
+
+export async function POST(req: NextRequest) {
   try {
-    const body = await request.json()
+    const body = await req.json();
+    const { assessments } = body;
 
-    // Validate input
-    const parsedData = createAssessmentSchema.parse({
-      ...body,
-      totalMarks: Number(body.totalMarks),
-      weight: Number(body.weight),
-    })
-
-    const newAssessment = {
-      ...parsedData,
-      classId: new ObjectId(parsedData.classId),
-      dueDate: new Date(parsedData.dueDate),
-      createdBy: null, // remove auth
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    if (!assessments || typeof assessments !== "object") {
+      return NextResponse.json({ message: "Invalid assessments payload" }, { status: 400 });
     }
 
-    const result = await prisma.assessment.create({
-      data: {
-        ...newAssessment
+    // 1️⃣ Get the active academic year and term
+    const activeTerm = await prisma.term.findFirst({
+      where: { isActive: true },
+      include: { academicYear: true },
+    });
+
+    if (!activeTerm) {
+      return NextResponse.json({ message: "No active term found" }, { status: 400 });
+    }
+
+    const termNumber = activeTerm.termNumber;
+    const year = activeTerm.academicYear.year;
+
+    const records: AssessmentRecord[] = Object.values(assessments) as AssessmentRecord[];
+
+    // 2️⃣ Validate sum of test1, test2, groupWork, project
+    for (const record of records) {
+      const sum = record.test1 + record.test2 + record.groupWork + record.project;
+      if (sum > 100) {
+        return NextResponse.json(
+          {
+            message: `The sum of test1, test2, groupWork, and project must be 100 for student ${record.studentId}`,
+          },
+          { status: 400 }
+        );
       }
-    })
+    }
 
-    return NextResponse.json({
-      assessment: newAssessment
-    }, { status: 201 })
+    // 3️⃣ Upsert assessments
+    await prisma.$transaction(
+      records.map((record) => {
+        const { test1, test2, groupWork, project, exam, studentId, subjectId, classId } = record;
+
+        const total = test1 + test2 + groupWork + project + exam;
+
+        return prisma.termAssessment.upsert({
+          where: {
+            studentId_subjectId_term_year: {
+              studentId,
+              subjectId,
+              term: termNumber,
+              year,
+            },
+          },
+          update: { test1, test2, groupWork, project, exam },
+          create: { studentId, subjectId, classId, term: termNumber, year, test1, test2, groupWork, project, exam },
+        });
+      })
+    );
+
+    return NextResponse.json({ message: "Assessments saved successfully" });
   } catch (error: any) {
-    console.error("Error creating assessment:", error)
-
-    if (error.name === "ZodError") {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
-    }
-
-    if (error.name === "ValidationError") {
-      return NextResponse.json({ error: error.message }, { status: 400 })
-    }
-
-    return NextResponse.json({ error: "Failed to create assessment" }, { status: 500 })
+    console.error(error);
+    return NextResponse.json({ message: error.message || "Something went wrong" }, { status: 500 });
   }
 }

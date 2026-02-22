@@ -6,7 +6,7 @@ model TermAssessment {
   classId   String
 
   term      Int
-  year      Int
+  year      String
 
   test1     Int      @default(0)
   groupWork Int      @default(0)

@@ -1,4 +1,4 @@
-import { Prisma, Student } from "./generated/prisma/client"
+import { Gender, Level, Prisma, Section, Student, Subject } from "./generated/prisma/client"
 
 export type FullUserType = Prisma.UserGetPayload<{
   include: {
@@ -29,23 +29,20 @@ export type ClassWithStudents = Prisma.ClassGetPayload<{
   }
 }>
 
-export type ClassWithStudentsAndSbjects = Prisma.ClassGetPayload<{
-  include: {
-    students: {
-      include: {
-        user: true
-        class: true
-        grades: true
-        attendances: true
-      }
-    },
-    subjects: {
-      include: {
-        subject: true
-      }
-    }
-  }
-}>
+export type ClassWithStudentsAndSubjects = {
+  id: string
+  level: Level
+  grade: number
+  section: Section
+  academicYear: string
+  capacity: number
+  currentEnrollment: number
+  classTeacherId: string | null
+  createdAt: string
+  updatedAt: string
+  students: StudentWithRelations[]
+  subjects: Subject[]
+}
 
 
 export interface Class {
@@ -104,8 +101,9 @@ export interface SchoolClass {
 }
 
 export interface Assessment {
-  studentId: number;
+  studentId: string;
   subjectId: string;
+  classId: string
   test1: number;
   groupWork: number;
   test2: number;

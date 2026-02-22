@@ -11,9 +11,10 @@ interface Props {
   selectedSubject: Subject;
   assessments: Record<string, Assessment>;
   onAssessmentChange: (studentId: string, assessment: Assessment) => void;
+  classId: string
 }
 
-export default function AssessmentGrid({ students, selectedSubject, assessments, onAssessmentChange }: Props) {
+export default function AssessmentGrid({ students, selectedSubject, assessments, onAssessmentChange, classId }: Props) {
   const [weights, setWeights] = useState<TaskWeights>({ ...DEFAULT_WEIGHTS });
   const weightsTotal = getWeightsTotal(weights);
   const weightsValid = weightsTotal === 100;
@@ -31,6 +32,7 @@ export default function AssessmentGrid({ students, selectedSubject, assessments,
       test2: 0,
       project: 0,
       exam: 0,
+      classId
     };
   };
 

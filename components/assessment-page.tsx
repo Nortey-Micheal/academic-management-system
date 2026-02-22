@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AssessmentGrid from '@/components/AssessmentGrid';
 import HeaderSelectors from '@/components/SubjectSelector';
-import type { Assessment, ClassWithStudents, ClassWithStudentsAndSbjects } from '@/lib/types';
+import type { Assessment, ClassWithStudentsAndSubjects } from '@/lib/types';
 import { Subject } from '@/lib/generated/prisma/client';
 import { useDispatch, useSelector } from 'react-redux';
 import { StoreState } from '@/lib/store';
@@ -16,9 +16,9 @@ function getStorageKey(classId: string, subjectId: string) {
 
 export default function AssessmentPage() {
   const classes = useSelector((state:StoreState) => state.classes)
-  const [selectedClass, setSelectedClass] = useState<ClassWithStudentsAndSbjects | null>(classes && classes[0]);
-  const [subjects, setSubjects] = useState<Subject[]>([])
-  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
+  const [selectedClass, setSelectedClass] = useState<ClassWithStudentsAndSubjects | null>(classes[0]);
+  const [subjects, setSubjects] = useState<Subject[]>(selectedClass?.subjects!)
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(subjects[0]);
   const [assessments, setAssessments] = useState<Record<string, Assessment>>({});
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const user = useSelector((state:StoreState) => state.user)
@@ -41,15 +41,28 @@ export default function AssessmentPage() {
     setSaveStatus('idle');
   }, []);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaveStatus('saving');
     const key = getStorageKey(selectedClass?.id!, selectedSubject?.id!);
+    console.log(assessments)
     localStorage.setItem(key, JSON.stringify(assessments));
-    setTimeout(() => setSaveStatus('saved'), 300);
+    try {
+      const response = await fetch('/api/assessments',{
+        method: "POST",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assessments })
+      })
+      const data = await response.json()
+      toast.success(data.message)
+      setTimeout(() => setSaveStatus('saved'), 300);
+    } catch (error:any) {
+      toast.error(error)
+    }
     setTimeout(() => setSaveStatus('idle'), 2000);
   };
 
-  const handleClassChange = (cls: ClassWithStudentsAndSbjects) => {
+  const handleClassChange = (cls: ClassWithStudentsAndSubjects) => {
     setSelectedClass(cls);
   };
 
@@ -59,7 +72,6 @@ export default function AssessmentPage() {
 
   useEffect(() => {
     const fetchClasses = async() => {
-    console.log(user)
         try {
             const response = await fetch(`/api/classWithStudents/${user.teacherProfile?.id}`)
             const data = await response.json()
@@ -75,7 +87,7 @@ export default function AssessmentPage() {
     const fetchSubjects = async() => {
         try {
             setSubjects(
-                selectedClass?.subjects.map((cs) => cs.subject) ?? []
+                selectedClass?.subjects ?? []
             )
         } catch (error:any) {
             toast.error(error)
@@ -83,6 +95,10 @@ export default function AssessmentPage() {
     }
     fetchSubjects()
   },[classes.length])
+
+  useEffect(() => {
+    console.log({selectedClass,selectedSubject})
+  },[selectedClass])
 
   const boys = selectedClass?.students?.filter((s) => s.gender === 'male');
   const girls = selectedClass?.students?.filter((s) => s.gender === 'female');
@@ -157,6 +173,7 @@ export default function AssessmentPage() {
           selectedSubject={selectedSubject!}
           assessments={assessments}
           onAssessmentChange={handleAssessmentChange}
+          classId={selectedClass?.id!}
         />
       </div>
     </main>
