@@ -9,8 +9,6 @@ export async function GET(
   try {
     const levelParam = (await params).level.toUpperCase();
 
-    console.log(levelParam)
-
     if (!Object.values(Level).includes(levelParam as Level)) {
       return NextResponse.json(
         { message: "Invalid department level" },

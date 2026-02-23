@@ -1,4 +1,4 @@
-import { Gender, Level, Prisma, Section, Student, Subject } from "./generated/prisma/client"
+import { Level, Prisma, Section, Subject } from "./generated/prisma/client"
 
 export type FullUserType = Prisma.UserGetPayload<{
   include: {
@@ -28,6 +28,31 @@ export type ClassWithStudents = Prisma.ClassGetPayload<{
     }
   }
 }>
+
+interface SubjectScore {
+  name: string;
+  classScore: number;
+  examsScore: number;
+  totalScore: number;
+  grade: string;
+  remarks: string;
+}
+
+export interface StudentReport {
+  id: string;
+  name: string;
+  age: number;
+  attendance: string;
+  term: string;
+  academicPeriod: string;
+  termEnding: string;
+  nextTermBegins: string;
+  promotedTo: string;
+  conduct: string;
+  attitude: string;
+  classTeacherRemark: string;
+  subjects: SubjectScore[];
+}
 
 export type ClassWithStudentsAndSubjects = {
   id: string

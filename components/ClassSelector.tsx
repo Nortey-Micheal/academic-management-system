@@ -2,35 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { ClassWithStudents, StudentWithRelations } from '@/lib/types';
 
-interface Student {
-  id: string;
-  name: string;
-  age: number;
-  attendance: string;
-  term: string;
-  academicPeriod: string;
-  termEnding: string;
-  nextTermBegins: string;
-  promotedTo: string;
-  conduct: string;
-  attitude: string;
-  classTeacherRemark: string;
-  subjects: any[];
-}
 
-interface ClassData {
-  id: string;
-  name: string;
-  students: Student[];
-}
 
 interface ClassSelectorProps {
-  onSelectStudent: (student: Student) => void;
+  onSelectStudent: (student: StudentWithRelations) => void;
 }
 
 const ClassSelector: React.FC<ClassSelectorProps> = ({ onSelectStudent }) => {
-  const [classes, setClasses] = useState<ClassData[]>([]);
+  const [classes, setClasses] = useState<ClassWithStudents[]>([]);
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -38,7 +19,7 @@ const ClassSelector: React.FC<ClassSelectorProps> = ({ onSelectStudent }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('/data/students.json');
+        const response = await fetch('/api/classes');
         if (!response.ok) {
           throw new Error('Failed to load students data');
         }
@@ -90,7 +71,7 @@ const ClassSelector: React.FC<ClassSelectorProps> = ({ onSelectStudent }) => {
           >
             {classes.map(cls => (
               <option key={cls.id} value={cls.id}>
-                {cls.name}
+                {`Basic ${cls.grade}`}
               </option>
             ))}
           </select>
@@ -106,7 +87,7 @@ const ClassSelector: React.FC<ClassSelectorProps> = ({ onSelectStudent }) => {
             <option value="">-- Select a student --</option>
             {currentClass?.students.map(student => (
               <option key={student.id} value={student.id}>
-                {student.name}
+                {student.user.lastName + ' ' + student.user.firstName}
               </option>
             ))}
           </select>

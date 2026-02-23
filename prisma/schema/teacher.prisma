@@ -5,9 +5,9 @@ model Teacher {
   specialization String
   joinDate       DateTime
 
-  user           User      @relation(fields: [userId], references: [id])
-  subjects       Subject[]
-  classTeacherOf Class[]   @relation("ClassTeacher")
-  gradesGiven    Grade[]   @relation("GradedBy")
+  user                 User                  @relation(fields: [userId], references: [id])
+  subjects             Subject[]
+  classTeacherOf       Class[]               @relation("ClassTeacher")
+  gradesGiven          Grade[]               @relation("GradedBy")
   teacherClassSubjects TeacherClassSubject[]
 }

@@ -2,34 +2,12 @@
 
 import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { StudentReport } from '@/lib/types';
 
-interface Subject {
-  name: string;
-  classScore: number;
-  examsScore: number;
-  totalScore: number;
-  grade: string;
-  remarks: string;
-}
 
-interface Student {
-  id: string;
-  name: string;
-  age: number;
-  attendance: string;
-  term: string;
-  academicPeriod: string;
-  termEnding: string;
-  nextTermBegins: string;
-  promotedTo: string;
-  conduct: string;
-  attitude: string;
-  classTeacherRemark: string;
-  subjects: Subject[];
-}
 
 interface ReportCardProps {
-  student: Student;
+  student: StudentReport;
   schoolLogo?: string;
   headteacherSignature?: string;
 }
@@ -273,9 +251,9 @@ const ReportCard: React.FC<ReportCardProps> = ({ student }) => {
               {student.subjects.map((subject) => (
                 <tr key={subject.name}>
                   <td className="border border-black p-1 font-bold text-sm" style={{ backgroundColor: '#ffffff' }}>{subject.name}</td>
-                  <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#ffffff' }}>{subject.classScore}</td>
-                  <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#ffffff' }}>{subject.examsScore}</td>
-                  <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#ffffff' }}>{subject.totalScore}</td>
+                  <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#ffffff' }}>{`${subject.classScore}`}</td>
+                  <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#ffffff' }}>{`${subject.examsScore}`}</td>
+                  <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#ffffff' }}>{`${subject.totalScore}`}</td>
                   <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#ffffff' }}>{subject.grade}</td>
                   <td className="border border-black p-1 text-sm" style={{ backgroundColor: '#ffffff' }}>{subject.remarks}</td>
                 </tr>
@@ -284,7 +262,7 @@ const ReportCard: React.FC<ReportCardProps> = ({ student }) => {
                 <td className="border border-black p-1 text-sm" style={{ backgroundColor: '#efefef', fontWeight: 'bold' }}>Total</td>
                 <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#efefef' }}></td>
                 <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#efefef' }}></td>
-                <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#efefef', fontWeight: 'bold' }}>{totalScore}</td>
+                <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#efefef', fontWeight: 'bold' }}>{`${totalScore}`}</td>
                 <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#efefef' }}></td>
                 <td className="border border-black p-1 text-sm" style={{ backgroundColor: '#efefef' }}></td>
               </tr>

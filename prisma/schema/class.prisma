@@ -1,34 +1,33 @@
 model Class {
-  id                String   @id @default(uuid())
+  id String @id @default(uuid())
 
   // Academic Structure
-  level             Level
-  grade             Int
-  section           Section
-  academicYear      String
+  level        Level
+  grade        Int
+  section      Section
+  academicYear String
 
   // Capacity
-  capacity          Int      @default(30)
-  currentEnrollment Int      @default(0)
+  capacity          Int @default(30)
+  currentEnrollment Int @default(0)
 
   // Class Teacher (Form Teacher)
-  classTeacherId    String?
-  classTeacher      Teacher? @relation("ClassTeacher", fields: [classTeacherId], references: [id])
+  classTeacherId String?
+  classTeacher   Teacher? @relation("ClassTeacher", fields: [classTeacherId], references: [id])
 
   // Relations
-  students          Student[]
-  subjects          ClassSubject[]
-  assessments       TermAssessment[]
-  attendances       Attendance[]
+  students    Student[]
+  subjects    ClassSubject[]
+  assessments TermAssessment[]
+  attendances Attendance[]
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([level, grade, section, academicYear])
   @@index([academicYear])
   @@index([level, grade])
 }
-
 
 enum Level {
   PRE_SCHOOL

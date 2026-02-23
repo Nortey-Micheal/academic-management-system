@@ -1,7 +1,7 @@
 model AcademicYear {
-  id        String   @id @default(uuid())
-  year      String   @unique
-  isActive  Boolean  @default(false)
+  id       String  @id @default(uuid())
+  year     String  @unique
+  isActive Boolean @default(false)
 
   terms     Term[]
   createdAt DateTime @default(now())
@@ -9,15 +9,14 @@ model AcademicYear {
 }
 
 model Term {
-  id             String   @id @default(uuid())
+  id             String  @id @default(uuid())
   termNumber     Int
   academicYearId String
-  isActive       Boolean  @default(false)
+  isActive       Boolean @default(false)
 
   academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   @@unique([termNumber, academicYearId])
-
 }

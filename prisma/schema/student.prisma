@@ -11,9 +11,9 @@ model Student {
   address       String
   admissionDate DateTime
 
-  user        User         @relation(fields: [userId], references: [id])
-  class       Class        @relation(fields: [classId], references: [id])
+  user        User             @relation(fields: [userId], references: [id])
+  class       Class            @relation(fields: [classId], references: [id])
   grades      Grade[]
   attendances Attendance[]
-  assessments  TermAssessment[]
+  assessments TermAssessment[]
 }

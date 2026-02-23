@@ -9,7 +9,7 @@ model Subject {
   level       Level
 
   // Relations
-  teacher     Teacher?       @relation(fields: [teacherId], references: [id])
+  teacher     Teacher?         @relation(fields: [teacherId], references: [id])
   classLinks  ClassSubject[]
-  assessments  TermAssessment[]
+  assessments TermAssessment[]
 }

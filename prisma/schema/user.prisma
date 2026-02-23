@@ -15,7 +15,7 @@ model User {
   teacherProfile Teacher?
 
   // Common relations
-  attendancesMarked  Attendance[]
+  attendancesMarked Attendance[]
 }
 
 enum UserRole {

@@ -36,6 +36,18 @@ export async function GET() {
         classTeacherId: true,
         createdAt: true,
         updatedAt: true,
+        subjects:true,
+        students: {
+          include: {
+            user: {
+             select: {
+              id: true,
+              firstName: true,
+              lastName: true
+             }
+            }
+          }
+        },
       },
       orderBy: [
         { level: "asc" },
