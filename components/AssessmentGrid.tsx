@@ -24,7 +24,7 @@ export default function AssessmentGrid({ students, selectedSubject, assessments,
   // const allStudents = [...boys, ...girls];
 
   const getOrCreateAssessment = (studentId: string): Assessment => {
-    return assessments[studentId] || {
+    return (assessments && assessments[studentId]) || {
       studentId,
       subjectId: selectedSubject?.id!,
       test1: 0,
@@ -35,6 +35,8 @@ export default function AssessmentGrid({ students, selectedSubject, assessments,
       classId
     };
   };
+
+  console.log({assessments})
 
   const handleScoreChange = (studentId: string, field: keyof Assessment, value: number) => {
     const assessment = getOrCreateAssessment(studentId);

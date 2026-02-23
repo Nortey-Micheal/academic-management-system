@@ -10,9 +10,6 @@ import { StoreState } from '@/lib/store';
 import { toast } from 'sonner';
 import { setClasses } from '@/lib/store/features/classesSlice';
 
-function getStorageKey(classId: string, subjectId: string) {
-  return `assess_${classId}_${subjectId}`;
-}
 
 export default function AssessmentPage() {
   const classes = useSelector((state:StoreState) => state.classes)
@@ -23,18 +20,41 @@ export default function AssessmentPage() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const user = useSelector((state:StoreState) => state.user)
   const dispatch = useDispatch()
+  const [academicYear,setAcademicYear] = useState<string>('')
+  const [academicTerm,setAcademicTerm] = useState<string>('')
 
   // Load data when class or subject changes
   useEffect(() => {
-    const key = getStorageKey(selectedClass?.id!, selectedSubject?.id!);
-    const stored = localStorage.getItem(key);
-    if (stored) {
-      setAssessments(JSON.parse(stored));
-    } else {
-      setAssessments({});
+    const fetchClassAssessments = async () => {
+      try {
+        const response = await fetch(
+          `/api/assessments/class/${selectedClass?.id}?subjectId=${selectedSubject?.id}`
+        )
+        const data = await response.json()
+        setAssessments(data)
+      } catch (error:any) {
+        toast.error(error)
+      }
     }
+    fetchClassAssessments()
     setSaveStatus('idle');
-  }, [selectedClass, selectedSubject]);
+  }, [selectedClass,selectedSubject]);
+
+  //Get academic year and term
+  useEffect(() => {
+    const fetchAcademicYearAndTerm = async () => {
+      try {
+        const response = await fetch('/api/system/active-term')
+        const data = await response.json()
+        setAcademicTerm(`${data.term.termNumber}`)
+        setAcademicYear(data.academicYear.year)
+      } catch (error:any) {
+        toast.error(error)
+      }
+      
+    }
+    fetchAcademicYearAndTerm()
+  },[])
 
   const handleAssessmentChange = useCallback((studentId: string, assessment: Assessment) => {
     setAssessments((prev) => ({ ...prev, [studentId]: assessment }));
@@ -43,9 +63,6 @@ export default function AssessmentPage() {
 
   const handleSave = async () => {
     setSaveStatus('saving');
-    const key = getStorageKey(selectedClass?.id!, selectedSubject?.id!);
-    console.log(assessments)
-    localStorage.setItem(key, JSON.stringify(assessments));
     try {
       const response = await fetch('/api/assessments',{
         method: "POST",
@@ -129,10 +146,10 @@ export default function AssessmentPage() {
 
           <div className="flex items-center gap-4 text-xs">
             <span className="text-foreground">
-              <span className="font-bold">TERM:</span> 1
+              <span className="font-bold">TERM:</span> {academicTerm}
             </span>
             <span className="text-foreground">
-              <span className="font-bold">YEAR:</span> 2025
+              <span className="font-bold">YEAR:</span> {academicYear}
             </span>
           </div>
         </div>
