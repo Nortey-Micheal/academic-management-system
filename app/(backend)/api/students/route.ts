@@ -12,7 +12,7 @@ const createStudentSchema = z.object({
   dateOfBirth: z
     .string()
     .refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date of birth" }),
-  gender: z.enum(["male", "female", "other"]),
+  gender: z.enum(["male", "female"]),
   classId: z.string().min(1, "classId is required"),
   guardianName: z.string().min(1, "Guardian name is required"),
   guardianPhone: z.string().min(1, "Guardian phone is required"),
@@ -44,6 +44,15 @@ export async function GET(request: NextRequest) {
     const students = await prisma.student.findMany({
       where: {
         ...query
+      },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            status: true
+          }
+        }
       }
     })
 

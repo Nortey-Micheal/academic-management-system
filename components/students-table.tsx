@@ -8,11 +8,12 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Search, Pencil, Trash2 } from "lucide-react"
 import { AddStudentDialog } from "@/components/add-student-dialog"
-import type { Student, Class } from "@/lib/types"
 import { DUMMY_CLASSES, DUMMY_STUDENTS } from "@/lib/dummy-data"
+import { StudentWithRelations } from "@/lib/types"
+import { Class } from "@/lib/generated/prisma/client"
 
 export function StudentsTable() {
-  const [students, setStudents] = useState<Student[]>([])
+  const [students, setStudents] = useState<StudentWithRelations[]>([])
   const [classes, setClasses] = useState<Class[]>([])
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
@@ -28,10 +29,10 @@ export function StudentsTable() {
 
       const [studentsData, classesData] = await Promise.all([studentsRes.json(), classesRes.json()])
 
-      // setStudents(studentsData.students)
-      // setClasses(classesData.classes)
-      setClasses(DUMMY_CLASSES)
-      setStudents(DUMMY_STUDENTS)
+      setStudents(studentsData.students)
+      setClasses(classesData.classes)
+      // setClasses(DUMMY_CLASSES)
+      // setStudents(DUMMY_STUDENTS)
     } catch (error) {
       console.error("[v0] Error fetching data:", error)
       // Use centralized dummy data for local development
@@ -43,8 +44,8 @@ export function StudentsTable() {
   }
 
   const getClassName = (classId: string) => {
-    const classObj = classes.find((c) => c._id === classId)
-    return classObj?.className || "N/A"
+    const classObj = classes.find((c) => c.id === classId)
+    return `Basic ${classObj?.grade}` || "N/A"
   }
 
   const handleDelete = async (id: string) => {
@@ -65,8 +66,8 @@ export function StudentsTable() {
 
   const filteredStudents = students?.filter(
     (student) =>
-      student.firstName.toLowerCase().includes(search.toLowerCase()) ||
-      student.lastName.toLowerCase().includes(search.toLowerCase()) ||
+      student.user?.firstName.toLowerCase().includes(search.toLowerCase()) ||
+      student.user?.lastName.toLowerCase().includes(search.toLowerCase()) ||
       student.studentId.toLowerCase().includes(search.toLowerCase()),
   )
 
@@ -110,11 +111,11 @@ export function StudentsTable() {
               </TableHeader>
               <TableBody>
                 {filteredStudents?.map((student) => (
-                  <TableRow key={student._id}>
+                  <TableRow key={student.id}>
                     <TableCell className="font-mono text-sm">{student.studentId}</TableCell>
                     <TableCell>
                       <div className="font-medium">
-                        {student.firstName} {student.lastName}
+                        {student.user?.firstName} {student.user?.lastName}
                       </div>
                       <div className="text-sm text-muted-foreground capitalize">{student.gender}</div>
                     </TableCell>
@@ -125,8 +126,8 @@ export function StudentsTable() {
                       <div className="text-xs text-muted-foreground">{student.guardianEmail}</div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={student.status === "active" ? "default" : "secondary"} className="capitalize">
-                        {student.status}
+                      <Badge variant={student.user?.status === "active" ? "default" : "secondary"} className="capitalize">
+                        {student.user?.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -134,7 +135,7 @@ export function StudentsTable() {
                         <Button variant="ghost" size="icon">
                           <Pencil className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(student._id!)}>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(student.id!)}>
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>
                       </div>
