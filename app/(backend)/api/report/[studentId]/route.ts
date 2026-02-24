@@ -116,8 +116,8 @@ export async function GET(
       const project = assessment?.project ?? 0;
       const exam = assessment?.exam ?? 0;
 
-      const classScore = test1 + test2 + groupWork + project;
-      const examsScore = exam;
+      const classScore = (test1 + test2 + groupWork + project) / 2;
+      const examsScore = (exam) / 2;
       const totalScore = classScore + examsScore;
 
       return {

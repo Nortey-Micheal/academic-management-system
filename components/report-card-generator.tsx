@@ -9,6 +9,8 @@ export default function ReportCardGenerator() {
   // store just the selected student ID
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [studentReport, setStudentReport] = useState<StudentReport | null>(null);
+  const [term, setTerm] = useState<string>('')
+  const [year, setYear] = useState<string>('')
 
   // fetch the report when a student ID is set
   useEffect(() => {
@@ -16,7 +18,7 @@ export default function ReportCardGenerator() {
 
     const fetchStudentReport = async () => {
       try {
-        const response = await fetch(`/api/report/${selectedStudentId}?term=2&year=2025`);
+        const response = await fetch(`/api/report/${selectedStudentId}?term=${term}&year=${year}`);
         if (!response.ok) throw new Error('Failed to fetch report');
         const data: StudentReport = await response.json();
         setStudentReport(data);
@@ -34,7 +36,7 @@ export default function ReportCardGenerator() {
 
         {!selectedStudentId ? (
           <div className="flex justify-center">
-            <ClassSelector onSelectStudent={(student) => setSelectedStudentId(student.id)} />
+            <ClassSelector onSelectStudent={(student) => setSelectedStudentId(student.id)} setTerm={setTerm} setYear={setYear}/>
           </div>
         ) : (
           <div className="space-y-6">
