@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus } from "lucide-react"
-import type { Class } from "@/lib/types"
+import { Class } from "@/lib/generated/prisma/client"
 
 interface AddStudentDialogProps {
   onStudentAdded: () => void
@@ -153,8 +153,8 @@ export function AddStudentDialog({ onStudentAdded }: AddStudentDialogProps) {
               </SelectTrigger>
               <SelectContent>
                 {classes?.map((c) => (
-                  <SelectItem key={c._id} value={c._id!}>
-                    {c.className} ({c.currentEnrollment}/{c.capacity})
+                  <SelectItem key={c.id} value={c.id!}>
+                    {`Basic ${c.grade}`} ({c.currentEnrollment}/{c.capacity})
                   </SelectItem>
                 ))}
               </SelectContent>

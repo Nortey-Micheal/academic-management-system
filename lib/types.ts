@@ -69,21 +69,6 @@ export type ClassWithStudentsAndSubjects = {
   subjects: Subject[]
 }
 
-
-export interface Class {
-  _id?: string
-  className: string
-  level: string
-  section: string
-  academicYear: string
-  capacity: number
-  currentEnrollment: number
-  classTeacherId?: string
-  subjects: string[]
-  createdAt: Date
-  updatedAt: Date
-}
-
 export interface Teacher {
   _id?: string
   teacherId: string
