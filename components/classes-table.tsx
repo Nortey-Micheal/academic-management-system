@@ -5,8 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { AddClassDialog } from "@/components/add-class-dialog"
-import type { Class } from "@/lib/types"
-import { DUMMY_CLASSES } from "@/lib/dummy-data"
+import { Class } from "@/lib/generated/prisma/client"
 
 export function ClassesTable() {
   const [classes, setClasses] = useState<Class[]>([])
@@ -21,8 +20,8 @@ export function ClassesTable() {
     try {
       const response = await fetch("/api/classes")
       const data = await response.json()
-      // setClasses(data.classes)
-      setClasses(DUMMY_CLASSES)
+      setClasses(data.classes)
+      // setClasses(DUMMY_CLASSES)
     } catch (error) {
       console.error("[v0] Error fetching classes:", error)
     } finally {
@@ -46,11 +45,11 @@ export function ClassesTable() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {classes?.map((classItem) => (
-              <Card key={classItem._id} className="border-2">
+              <Card key={classItem.id} className="border-2">
                 <CardContent className="pt-6">
                   <div className="space-y-4">
                     <div>
-                      <h3 className="text-xl font-semibold">{classItem.className}</h3>
+                      <h3 className="text-xl font-semibold">{`Basic ${classItem.grade}`}</h3>
                       <p className="text-sm text-muted-foreground">Academic Year: {classItem.academicYear}</p>
                     </div>
                     <div className="space-y-2">

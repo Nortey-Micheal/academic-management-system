@@ -70,51 +70,75 @@ export async function GET() {
 /**
  * POST: Create a new class
  */
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const body = await request.json()
+    const body = await req.json()
 
-    // Validate input
-    const parsedData = createClassSchema.parse({
-      ...body,
-      capacity: Number(body.capacity), // ensure number
+    const {
+      level,
+      grade,
+      section,
+      academicYear,
+      capacity,
+      classTeacherId,
+    } = body
+
+    // ✅ 1. Prevent duplicate class (Prisma unique constraint)
+    const existingClass = await prisma.class.findFirst({
+      where: {
+        level,
+        grade,
+        section,
+        academicYear,
+      },
     })
 
-    const newClassData = {
-      ...parsedData,
-      classTeacherId: parsedData.classTeacherId
-        ? new ObjectId(parsedData.classTeacherId)
-        : null,
-      currentEnrollment: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    if (existingClass) {
+      return NextResponse.json(
+        { message: "Class already exists for this academic year." },
+        { status: 400 }
+      )
     }
 
-    const result = await prisma.class.create({
-      data: {
-        ...newClassData
+    // ✅ 2. Prevent teacher from being class teacher twice in same year
+    if (classTeacherId) {
+      const teacherAlreadyAssigned = await prisma.class.findFirst({
+        where: {
+          classTeacherId,
+          academicYear,
+        },
+      })
+
+      if (teacherAlreadyAssigned) {
+        return NextResponse.json(
+          {
+            message:
+              "This teacher is already assigned as a class teacher for this academic year.",
+          },
+          { status: 400 }
+        )
       }
+    }
+
+    // ✅ 3. Create class
+    const newClass = await prisma.class.create({
+      data: {
+        level,
+        grade: Number(grade),
+        section,
+        academicYear,
+        capacity: Number(capacity),
+        classTeacherId: classTeacherId || null,
+      },
     })
+
+    return NextResponse.json(newClass, { status: 201 })
+  } catch (error: any) {
+    console.error(error)
 
     return NextResponse.json(
-      {
-        class: {
-          ...result
-        },
-      },
-      { status: 201 }
+      { message: "Something went wrong." },
+      { status: 500 }
     )
-  } catch (error: any) {
-    console.error("Error creating class:", error)
-
-    if (error.name === "ZodError") {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
-    }
-
-    if (error.name === "ValidationError") {
-      return NextResponse.json({ error: error.message }, { status: 400 })
-    }
-
-    return NextResponse.json({ error: "Failed to create class" }, { status: 500 })
   }
 }
