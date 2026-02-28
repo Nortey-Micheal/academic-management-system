@@ -1,20 +1,34 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Search, Pencil, Trash2 } from "lucide-react"
 import { AddStudentDialog } from "@/components/add-student-dialog"
-import { DUMMY_CLASSES, DUMMY_STUDENTS } from "@/lib/dummy-data"
 import { StudentWithRelations } from "@/lib/types"
 import { Class } from "@/lib/generated/prisma/client"
 
 export function StudentsTable() {
   const [students, setStudents] = useState<StudentWithRelations[]>([])
   const [classes, setClasses] = useState<Class[]>([])
+  const [selectedClassId, setSelectedClassId] = useState<string>("")
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
 
@@ -25,28 +39,49 @@ export function StudentsTable() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const [studentsRes, classesRes] = await Promise.all([fetch("/api/students"), fetch("/api/classes")])
+      const [studentsRes, classesRes] = await Promise.all([
+        fetch("/api/students"),
+        fetch("/api/classes"),
+      ])
 
-      const [studentsData, classesData] = await Promise.all([studentsRes.json(), classesRes.json()])
+      const [studentsData, classesData] = await Promise.all([
+        studentsRes.json(),
+        classesRes.json(),
+      ])
 
       setStudents(studentsData.students)
       setClasses(classesData.classes)
-      // setClasses(DUMMY_CLASSES)
-      // setStudents(DUMMY_STUDENTS)
+
+      // Auto select first class
+      if (classesData.classes.length > 0) {
+        setSelectedClassId(classesData.classes[0].id)
+      }
     } catch (error) {
-      console.error("[v0] Error fetching data:", error)
-      // Use centralized dummy data for local development
-      // setClasses(DUMMY_CLASSES)
-      // setStudents(DUMMY_STUDENTS)
+      console.error("Error fetching data:", error)
     } finally {
       setLoading(false)
     }
   }
 
-  const getClassName = (classId: string) => {
-    const classObj = classes.find((c) => c.id === classId)
-    return `Basic ${classObj?.grade}` || "N/A"
-  }
+  const selectedClass = useMemo(
+    () => classes.find((c) => c.id === selectedClassId),
+    [classes, selectedClassId],
+  )
+
+  const filteredStudents = useMemo(() => {
+    return students
+      .filter((student) => student.classId === selectedClassId)
+      .filter(
+        (student) =>
+          student.user?.firstName
+            ?.toLowerCase()
+            .includes(search.toLowerCase()) ||
+          student.user?.lastName
+            ?.toLowerCase()
+            .includes(search.toLowerCase()) ||
+          student.studentId.toLowerCase().includes(search.toLowerCase()),
+      )
+  }, [students, selectedClassId, search])
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this student?")) return
@@ -56,29 +91,47 @@ export function StudentsTable() {
         method: "DELETE",
       })
 
-      if (response.ok) {
-        fetchData()
-      }
+      if (response.ok) fetchData()
     } catch (error) {
-      console.error("[v0] Error deleting student:", error)
+      console.error("Error deleting student:", error)
     }
   }
 
-  const filteredStudents = students?.filter(
-    (student) =>
-      student.user?.firstName.toLowerCase().includes(search.toLowerCase()) ||
-      student.user?.lastName.toLowerCase().includes(search.toLowerCase()) ||
-      student.studentId.toLowerCase().includes(search.toLowerCase()),
-  )
+  const formatClassName = (cls: Class) => {
+    return `${cls.level.replace(/_/g, " ")} - Grade ${cls.grade}${cls.section} (${cls.academicYear})`
+  }
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="space-y-4">
         <div className="flex items-center justify-between">
-          <CardTitle>Students ({students?.length})</CardTitle>
+          <CardTitle>
+            {selectedClass
+              ? `Students - ${formatClassName(selectedClass)}`
+              : "Students"}
+          </CardTitle>
           <AddStudentDialog onStudentAdded={fetchData} />
         </div>
-        <div className="relative mt-4">
+
+        {/* Class Selector */}
+        <Select
+          value={selectedClassId}
+          onValueChange={(value) => setSelectedClassId(value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select a class" />
+          </SelectTrigger>
+          <SelectContent>
+            {classes.map((cls) => (
+              <SelectItem key={cls.id} value={cls.id}>
+                {formatClassName(cls)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Search */}
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search by name or student ID..."
@@ -87,13 +140,38 @@ export function StudentsTable() {
             className="pl-9"
           />
         </div>
+
+        {/* Class Info */}
+        {selectedClass && (
+          <div className="flex gap-4 text-sm text-muted-foreground">
+            <div>
+              Capacity:{" "}
+              <span className="font-medium text-foreground">
+                {selectedClass.capacity}
+              </span>
+            </div>
+            <div>
+              Enrolled:{" "}
+              <span className="font-medium text-foreground">
+                {filteredStudents.length}
+              </span>
+            </div>
+          </div>
+        )}
       </CardHeader>
+
       <CardContent>
         {loading ? (
-          <div className="text-center py-8 text-muted-foreground">Loading students?...</div>
-        ) : filteredStudents?.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            {search ? "No students found matching your search." : "No students added yet."}
+            Loading students...
+          </div>
+        ) : !selectedClass ? (
+          <div className="text-center py-8 text-muted-foreground">
+            Please select a class.
+          </div>
+        ) : filteredStudents.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            No students found in this class.
           </div>
         ) : (
           <div className="rounded-lg border">
@@ -102,7 +180,6 @@ export function StudentsTable() {
                 <TableRow>
                   <TableHead>Student ID</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead>Class</TableHead>
                   <TableHead>Guardian</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Status</TableHead>
@@ -110,23 +187,38 @@ export function StudentsTable() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredStudents?.map((student) => (
+                {filteredStudents.map((student) => (
                   <TableRow key={student.id}>
-                    <TableCell className="font-mono text-sm">{student.studentId}</TableCell>
+                    <TableCell className="font-mono text-sm">
+                      {student.studentId}
+                    </TableCell>
                     <TableCell>
                       <div className="font-medium">
-                        {student.user?.firstName} {student.user?.lastName}
+                        {student.user?.firstName}{" "}
+                        {student.user?.lastName}
                       </div>
-                      <div className="text-sm text-muted-foreground capitalize">{student.gender}</div>
+                      <div className="text-sm text-muted-foreground capitalize">
+                        {student.gender}
+                      </div>
                     </TableCell>
-                    <TableCell>{getClassName(student.classId)}</TableCell>
                     <TableCell>{student.guardianName}</TableCell>
                     <TableCell>
-                      <div className="text-sm">{student.guardianPhone}</div>
-                      <div className="text-xs text-muted-foreground">{student.guardianEmail}</div>
+                      <div className="text-sm">
+                        {student.guardianPhone}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {student.guardianEmail}
+                      </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={student.user?.status === "active" ? "default" : "secondary"} className="capitalize">
+                      <Badge
+                        variant={
+                          student.user?.status === "active"
+                            ? "default"
+                            : "secondary"
+                        }
+                        className="capitalize"
+                      >
                         {student.user?.status}
                       </Badge>
                     </TableCell>
@@ -135,7 +227,11 @@ export function StudentsTable() {
                         <Button variant="ghost" size="icon">
                           <Pencil className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(student.id!)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(student.id!)}
+                        >
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>
                       </div>
