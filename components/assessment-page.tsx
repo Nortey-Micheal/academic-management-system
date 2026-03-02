@@ -15,7 +15,7 @@ export default function AssessmentPage() {
   const classes = useSelector((state:StoreState) => state.classes)
   const [selectedClass, setSelectedClass] = useState<ClassWithStudentsAndSubjects | null>(classes[0]);
   const [subjects, setSubjects] = useState<Subject[]>(selectedClass?.subjects!)
-  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(subjects[0]);
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [assessments, setAssessments] = useState<Record<string, Assessment>>({});
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const user = useSelector((state:StoreState) => state.user)
@@ -26,6 +26,9 @@ export default function AssessmentPage() {
   // Load data when class or subject changes
   useEffect(() => {
     const fetchClassAssessments = async () => {
+      if (!selectedClass?.id && !selectedSubject?.id) {
+        return 
+      }
       try {
         const response = await fetch(
           `/api/assessments/class/${selectedClass?.id}?subjectId=${selectedSubject?.id}`
@@ -38,7 +41,7 @@ export default function AssessmentPage() {
     }
     fetchClassAssessments()
     setSaveStatus('idle');
-  }, [selectedClass,selectedSubject]);
+  }, [selectedClass?.id,selectedSubject?.id]);
 
   //Get academic year and term
   useEffect(() => {
@@ -55,6 +58,16 @@ export default function AssessmentPage() {
     }
     fetchAcademicYearAndTerm()
   },[])
+
+  useEffect(() => {
+    if (!selectedClass) return;
+
+    if (selectedClass.subjects && selectedClass.subjects.length > 0) {
+      setSelectedSubject(selectedClass.subjects[0]);
+    } else {
+      setSelectedSubject(null);
+    }
+  }, [selectedClass?.id, selectedClass?.subjects]);
 
   const handleAssessmentChange = useCallback((studentId: string, assessment: Assessment) => {
     setAssessments((prev) => ({ ...prev, [studentId]: assessment }));
@@ -102,16 +115,17 @@ export default function AssessmentPage() {
 
   useEffect(() => {
     const fetchSubjects = async() => {
+      console.log(selectedClass)
         try {
             setSubjects(
-                selectedClass?.subjects ?? []
+              selectedClass?.subjects ?? []
             )
         } catch (error:any) {
             toast.error(error)
         }
     }
     fetchSubjects()
-  },[classes.length])
+  },[selectedClass?.id])
 
   useEffect(() => {
     console.log({selectedClass,selectedSubject})

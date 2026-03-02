@@ -89,7 +89,7 @@ export async function GET(
           if (
             !subjectClassesMap
               .get(cls.id)
-              .subjects.some((sub) => sub.id === s.subject.id)
+              .subjects.some((sub:{id: string}) => sub.id === s.subject.id)
           ) {
             subjectClassesMap.get(cls.id).subjects.push(s.subject);
           }
@@ -98,9 +98,13 @@ export async function GET(
     }
 
     // Convert map to array and sort by className
-    const classes = Array.from(subjectClassesMap.values()).sort((a, b) =>
-      a.className.localeCompare(b.className)
-    );
+    const classes = Array.from(subjectClassesMap.values()).sort((a, b) => {
+      if (a.grade !== b.grade) {
+        return a.grade - b.grade
+      }
+
+      return a.section.localeCompare(b.section)
+    });
 
     return NextResponse.json(classes);
   } catch (error) {

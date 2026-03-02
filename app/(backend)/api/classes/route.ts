@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { ObjectId } from "mongodb"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
+import { Prisma } from "@/lib/generated/prisma/client"
 
 // ---------------------
 // Zod schema for validation
@@ -83,61 +84,111 @@ export async function POST(req: Request) {
       classTeacherId,
     } = body
 
-    // ✅ 1. Prevent duplicate class (Prisma unique constraint)
-    const existingClass = await prisma.class.findFirst({
-      where: {
-        level,
-        grade,
-        section,
-        academicYear,
-      },
-    })
-
-    if (existingClass) {
+    if (!level || !grade || !section || !academicYear) {
       return NextResponse.json(
-        { message: "Class already exists for this academic year." },
+        { message: "Missing required fields." },
         { status: 400 }
       )
     }
 
-    // ✅ 2. Prevent teacher from being class teacher twice in same year
-    if (classTeacherId) {
-      const teacherAlreadyAssigned = await prisma.class.findFirst({
-        where: {
-          classTeacherId,
+    const parsedGrade = Number(grade)
+    const parsedCapacity = Number(capacity) || 30
+
+    const result = await prisma.$transaction(async (tx) => {
+
+      // 🔥 1️⃣ Prevent duplicate class teacher in same year
+      if (classTeacherId) {
+        const teacherAlreadyAssigned = await tx.class.findFirst({
+          where: {
+            classTeacherId,
+            academicYear,
+          },
+        })
+
+        if (teacherAlreadyAssigned) {
+          throw new Error(
+            "This teacher is already assigned as a class teacher for this academic year."
+          )
+        }
+      }
+
+      // 🔥 2️⃣ Create Class
+      const newClass = await tx.class.create({
+        data: {
+          level,
+          grade: parsedGrade,
+          section,
           academicYear,
+          capacity: parsedCapacity,
+          classTeacherId: classTeacherId || null,
         },
       })
 
-      if (teacherAlreadyAssigned) {
+      // 🔥 3️⃣ Fetch subjects for this level (include teacher)
+      const subjectsForLevel = await tx.subject.findMany({
+        where: { level },
+        select: {
+          id: true,
+          teacherId: true,
+        },
+      })
+
+      if (subjectsForLevel.length === 0) {
+        throw new Error(
+          "No subjects found for this level. Please create subjects first."
+        )
+      }
+
+      // 🔥 4️⃣ Create ClassSubject records
+      const createdClassSubjects = await Promise.all(
+        subjectsForLevel.map((subject) =>
+          tx.classSubject.create({
+            data: {
+              classId: newClass.id,
+              subjectId: subject.id,
+            },
+          })
+        )
+      )
+
+      // 🔥 5️⃣ Create TeacherClassSubject links (if subject has teacher)
+      const teacherLinks = createdClassSubjects
+        .map((classSubject, index) => {
+          const teacherId = subjectsForLevel[index].teacherId
+          if (!teacherId) return null
+
+          return {
+            teacherId,
+            classSubjectId: classSubject.id,
+          }
+        })
+        .filter(Boolean) as { teacherId: string; classSubjectId: string }[]
+
+      if (teacherLinks.length > 0) {
+        await tx.teacherClassSubject.createMany({
+          data: teacherLinks,
+        })
+      }
+
+      return newClass
+    })
+
+    return NextResponse.json(result, { status: 201 })
+
+  } catch (error: any) {
+    console.error(error)
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
         return NextResponse.json(
-          {
-            message:
-              "This teacher is already assigned as a class teacher for this academic year.",
-          },
+          { message: "Class already exists for this academic year." },
           { status: 400 }
         )
       }
     }
 
-    // ✅ 3. Create class
-    const newClass = await prisma.class.create({
-      data: {
-        level,
-        grade: Number(grade),
-        section,
-        academicYear,
-        capacity: Number(capacity),
-        classTeacherId: classTeacherId || null,
-      },
-    })
-
-    return NextResponse.json(newClass, { status: 201 })
-  } catch (error: any) {
-    console.error(error)
-
     return NextResponse.json(
-      { message: "Something went wrong." },
+      { message: error.message || "Something went wrong." },
       { status: 500 }
     )
   }
