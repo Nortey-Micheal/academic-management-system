@@ -108,13 +108,13 @@ export default function AssessmentPage() {
 
   useEffect(() => {
     const fetchClasses = async() => {
-        try {
-            const response = await fetch(`/api/classWithStudents/${user.teacherProfile?.id}`)
-            const data = await response.json()
-            dispatch(setClasses(data))
-        } catch (error:any) {
-            toast.error(error)
-        }
+      try {
+          const response = await fetch(`/api/classWithStudents/${user.teacherProfile?.id}`)
+          const data = await response.json()
+          dispatch(setClasses(data))
+      } catch (error:any) {
+          toast.error(error)
+      }
     }
     fetchClasses()
   },[])

@@ -24,6 +24,9 @@ import { Search, Pencil, Trash2 } from "lucide-react"
 import { AddStudentDialog } from "@/components/add-student-dialog"
 import { StudentWithRelations } from "@/lib/types"
 import { Class } from "@/lib/generated/prisma/client"
+import { useSelector } from "react-redux"
+import { StoreState } from "@/lib/store"
+import { toast } from "sonner"
 
 export function StudentsTable() {
   const [students, setStudents] = useState<StudentWithRelations[]>([])
@@ -31,12 +34,19 @@ export function StudentsTable() {
   const [selectedClassId, setSelectedClassId] = useState<string>("")
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
+  const user = useSelector((state:StoreState) => state.user)
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    if (!user?.role || user.role === "STUDENT") return
 
-  const fetchData = async () => {
+    if (user.role === "TEACHER") {
+      fetchDataForTeachers()
+    } else {
+      fetchDataForNoneTeachers()
+    }
+  }, [user])
+
+  const fetchDataForNoneTeachers = async () => {
     setLoading(true)
     try {
       const [studentsRes, classesRes] = await Promise.all([
@@ -63,6 +73,39 @@ export function StudentsTable() {
     }
   }
 
+  const fetchDataForTeachers = async () => {
+    setLoading(true)
+
+    try {
+      const response = await fetch(`/api/classWithStudents/${user.teacherProfile?.id}`)
+      const data = await response.json()
+
+      const classList = data.map((cls: any) => {
+        const { students, ...classInfo } = cls
+        return classInfo
+      })
+
+      const studentList = data.flatMap((cls: any) =>
+        cls.students.map((student: any) => ({
+          ...student,
+          classId: cls.id,
+        }))
+      )
+
+      setClasses(classList)
+      setStudents(studentList)
+
+      if (classList.length > 0) {
+        setSelectedClassId(classList[0].id)
+      }
+
+    } catch (error: any) {
+      toast.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const selectedClass = useMemo(
     () => classes.find((c) => c.id === selectedClassId),
     [classes, selectedClassId],
@@ -79,7 +122,7 @@ export function StudentsTable() {
           student.user?.lastName
             ?.toLowerCase()
             .includes(search.toLowerCase()) ||
-          student.studentId.toLowerCase().includes(search.toLowerCase()),
+          student.studentId?.toLowerCase().includes(search.toLowerCase()),
       )
   }, [students, selectedClassId, search])
 
@@ -91,7 +134,13 @@ export function StudentsTable() {
         method: "DELETE",
       })
 
-      if (response.ok) fetchData()
+      if (response.ok) {
+        if (user.role === "TEACHER") {
+          fetchDataForTeachers()
+        } else {
+          fetchDataForNoneTeachers()
+        }
+      }
     } catch (error) {
       console.error("Error deleting student:", error)
     }
@@ -110,7 +159,7 @@ export function StudentsTable() {
               ? `Students - ${formatClassName(selectedClass)}`
               : "Students"}
           </CardTitle>
-          <AddStudentDialog onStudentAdded={fetchData} />
+          {user.role !== 'TEACHER' && <AddStudentDialog onStudentAdded={fetchDataForNoneTeachers} />}
         </div>
 
         {/* Class Selector */}
@@ -153,7 +202,7 @@ export function StudentsTable() {
             <div>
               Enrolled:{" "}
               <span className="font-medium text-foreground">
-                {filteredStudents.length}
+                {selectedClass.currentEnrollment}
               </span>
             </div>
           </div>
