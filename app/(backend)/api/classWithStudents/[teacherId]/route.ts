@@ -24,8 +24,12 @@ export async function GET(
                       select: {
                         firstName: true,
                         lastName: true,
+                        status: true,
                       },
                     },
+                    studentId: true,
+                    guardianName: true,
+                    guardianPhone: true,
                   },
                 },
               },

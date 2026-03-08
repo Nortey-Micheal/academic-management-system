@@ -95,6 +95,8 @@ export function StudentsTable() {
       setClasses(classList)
       setStudents(studentList)
 
+      console.log({classList,studentList})
+
       if (classList.length > 0) {
         setSelectedClassId(classList[0].id)
       }
