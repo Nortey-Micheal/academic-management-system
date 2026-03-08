@@ -63,6 +63,10 @@ export async function POST(req: Request) {
         },
       });
 
+      if (role === UserRole.ADMIN || role === UserRole.HEADTEACHER) {
+        return newUser;
+      }
+
       /* ===========================
          STUDENT CREATION
       ============================ */
@@ -212,7 +216,7 @@ export async function POST(req: Request) {
     );
 
     const response = NextResponse.json({
-      message: "Login successful",
+      message: "Account created successfully",
       token,
       user: {
         ...user,

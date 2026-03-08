@@ -127,13 +127,14 @@ export function StaffForm({
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log(formData)
     e.preventDefault()
     const payload: any = {
       firstName: formData.firstName,
       lastName: formData.lastName,
       phone: formData.phone,
       role: formData.role,
-      status: formData.status.toUpperCase(),
+      status: formData.status.toLowerCase(),
     }
 
     if (formData.role === 'TEACHER') {

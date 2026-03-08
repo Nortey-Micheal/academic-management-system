@@ -226,7 +226,8 @@ export default function SignupPage() {
                 className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="TEACHER">Teacher</option>
-                <option value="STUDENT">Student</option>
+                <option value="ADMIN">Admin</option>
+                <option value="HEADTEACHER">Headteacher</option>
               </select>
             </div>
 

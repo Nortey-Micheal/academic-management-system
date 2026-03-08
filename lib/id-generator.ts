@@ -1,7 +1,6 @@
-import { Prisma } from "./generated/prisma/client";
 
 export async function generateSequentialId(
-  tx: Prisma.TransactionClient,
+  tx: any,
   type: "STUDENT" | "TEACHER"
 ) {
   const year = new Date().getFullYear();
