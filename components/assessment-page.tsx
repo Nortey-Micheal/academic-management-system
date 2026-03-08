@@ -14,7 +14,6 @@ import { setClasses } from '@/lib/store/features/classesSlice';
 export default function AssessmentPage() {
   const classes = useSelector((state:StoreState) => state.classes)
   const [selectedClass, setSelectedClass] = useState<ClassWithStudentsAndSubjects | null>(classes[0]);
-  const [subjects, setSubjects] = useState<Subject[]>(selectedClass?.subjects!)
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [assessments, setAssessments] = useState<Record<string, Assessment>>({});
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
@@ -22,11 +21,12 @@ export default function AssessmentPage() {
   const dispatch = useDispatch()
   const [academicYear,setAcademicYear] = useState<string>('')
   const [academicTerm,setAcademicTerm] = useState<string>('')
+  const subjects = selectedClass?.subjects ?? []
 
   // Load data when class or subject changes
   useEffect(() => {
     const fetchClassAssessments = async () => {
-      if (!selectedClass?.id && !selectedSubject?.id) {
+      if (!selectedClass?.id || !selectedSubject?.id) {
         return 
       }
       try {
@@ -68,6 +68,12 @@ export default function AssessmentPage() {
       setSelectedSubject(null);
     }
   }, [selectedClass?.id, selectedClass?.subjects]);
+
+  useEffect(() => {
+    if (classes && classes.length > 0) {
+      setSelectedClass(classes[0])
+    }
+  }, [classes])
 
   const handleAssessmentChange = useCallback((studentId: string, assessment: Assessment) => {
     setAssessments((prev) => ({ ...prev, [studentId]: assessment }));
@@ -112,20 +118,6 @@ export default function AssessmentPage() {
     }
     fetchClasses()
   },[])
-
-  useEffect(() => {
-    const fetchSubjects = async() => {
-      console.log(selectedClass)
-        try {
-            setSubjects(
-              selectedClass?.subjects ?? []
-            )
-        } catch (error:any) {
-            toast.error(error)
-        }
-    }
-    fetchSubjects()
-  },[selectedClass?.id])
 
   useEffect(() => {
     console.log({selectedClass,selectedSubject})

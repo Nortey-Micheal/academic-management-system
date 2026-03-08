@@ -1,3 +1,4 @@
+import { clearClasses } from "@/lib/store/features/classesSlice";
 import { clearUser } from "@/lib/store/features/userSlice";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
@@ -17,6 +18,7 @@ export const useLogout = () => {
 
       // Clear redux store
       dispatch(clearUser());
+      dispatch(clearClasses())
 
       toast.success("Logged out successfully.");
 
