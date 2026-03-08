@@ -11,6 +11,7 @@ import {
   LogOut,
   X,
   Menu,
+  User2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useLogout } from "@/hooks/useLogout"
@@ -72,6 +73,12 @@ const navItems = [
     icon: Calendar,
     roles: ["ADMIN", "HEADTEACHER", "ACADEMIC_OFFICER", "TEACHER"],
   },
+  {
+    href: "/staff",
+    label: "Staff",
+    icon: User2,
+    roles: ["ADMIN", "HEADTEACHER", "ACADEMIC_OFFICER"]
+  }
 ]
 
 export default function DashboardNav({ user }: DashboardNavProps) {

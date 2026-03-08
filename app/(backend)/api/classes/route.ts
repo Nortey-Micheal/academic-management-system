@@ -37,7 +37,11 @@ export async function GET() {
         classTeacherId: true,
         createdAt: true,
         updatedAt: true,
-        subjects:true,
+        subjects: {
+          include: {
+            subject: true
+          }
+        },
         students: {
           include: {
             user: {
