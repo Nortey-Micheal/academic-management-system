@@ -5,118 +5,123 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-    try {
+  try {
+    const body = await req.json();
+    const { id } = await params;
 
-        const body = await req.json();
-        const { id } = await params
+    const result = await prisma.$transaction(async (tx) => {
 
-        const result = await prisma.$transaction(async (tx) => {
+      // 1️⃣ Update user
+      const user = await tx.user.update({
+        where: { id },
+        data: {
+          firstName: body.firstName,
+          lastName: body.lastName,
+          phone: body.phone,
+          role: body.role,
+          status: body.status
+        }
+      });
 
-            const user = await tx.user.update({
-                where: { id },
-                data: {
-                    firstName: body.firstName,
-                    lastName: body.lastName,
-                    phone: body.phone,
-                    role: body.role,
-                    status: body.status
-                }
-            });
+      let teacher = null;
 
-            // find teacher profile
-            let teacher = await tx.teacher.findUnique({
-                where: { userId: id }
-            });
+      // 2️⃣ Create or update teacher profile
+      if (body.role === "TEACHER" && body.teacherProfile) {
 
-            // create teacher profile if role switched to teacher
-            if (body.role === "TEACHER" && !teacher) {
-
-                teacher = await tx.teacher.create({
-                    data: {
-                        userId: id,
-                        teacherId: body.teacherProfile.teacherId,
-                        specialization: body.teacherProfile.specialization,
-                        joinDate: body.teacherProfile.joinDate
-                    }
-                });
-
-            }
-
-            // update teacher profile
-            if (teacher && body.teacherProfile) {
-
-                await tx.teacher.update({
-                    where: { userId: id },
-                    data: {
-                        teacherId: body.teacherProfile.teacherId,
-                        specialization: body.teacherProfile.specialization,
-                        joinDate: body.teacherProfile.joinDate
-                    }
-                });
-
-            }
-
-            // assign subjects
-            if (teacher && body.subjects) {
-
-                await tx.teacherClassSubject.deleteMany({
-                    where: {
-                        teacherId: teacher.id
-                    }
-                });
-
-                for (const subjectId of body.subjects) {
-
-                await tx.teacherClassSubject.create({
-                    data: {
-                    teacherId: teacher.id,
-                        classSubjectId: subjectId
-                    }
-                });
-
-                }
-
-            }
-
-            // class teacher assignments
-            if (teacher && body.classTeacherOf) {
-
-                await tx.class.updateMany({
-                    where: {
-                        classTeacherId: teacher.id
-                    },
-                    data: {
-                        classTeacherId: null
-                    }
-                });
-
-                for (const classId of body.classTeacherOf) {
-
-                await tx.class.update({
-                    where: { id: classId },
-                    data: {
-                        classTeacherId: teacher.id
-                    }
-                });
-
-                }
-
-            }
-
-            return user;
-
+        teacher = await tx.teacher.upsert({
+          where: { userId: id },
+          update: {
+            teacherId: body.teacherProfile.teacherId,
+            specialization: body.teacherProfile.specialization,
+            joinDate: body.teacherProfile.joinDate
+          },
+          create: {
+            userId: id,
+            teacherId: body.teacherProfile.teacherId,
+            specialization: body.teacherProfile.specialization,
+            joinDate: body.teacherProfile.joinDate
+          }
         });
 
-        return NextResponse.json(result);
+      }
 
-    } catch (error) {
+      // 3️⃣ Handle class + subject assignments
+      if (teacher && body.classAssignments) {
 
-        console.error(error);
+        // remove previous assignments
+        await tx.teacherClassSubject.deleteMany({
+          where: { teacherId: teacher.id }
+        });
 
-        return NextResponse.json(
-            { error: "Failed to update staff" },
-            { status: 500 }
-        );
+        for (const assignment of body.classAssignments) {
 
-    }
+          const { classId, subjects, isClassTeacher } = assignment;
+
+          // assign subjects
+          for (const subjectId of subjects) {
+
+            const classSubject = await tx.classSubject.findFirst({
+              where: {
+                classId,
+                subjectId
+              }
+            });
+
+            if (!classSubject) continue;
+
+            await tx.teacherClassSubject.create({
+              data: {
+                teacherId: teacher.id,
+                classSubjectId: classSubject.id
+              }
+            });
+          }
+
+          // assign class teacher
+          if (isClassTeacher) {
+
+            await tx.class.update({
+              where: { id: classId },
+              data: {
+                classTeacherId: teacher.id
+              }
+            });
+
+          }
+
+        }
+
+        // remove class teacher from classes not selected
+        await tx.class.updateMany({
+          where: {
+            classTeacherId: teacher.id,
+            id: {
+              notIn: body.classAssignments
+                .filter((c: any) => c.isClassTeacher)
+                .map((c: any) => c.classId)
+            }
+          },
+          data: {
+            classTeacherId: null
+          }
+        });
+
+      }
+
+      return user;
+
+    });
+
+    return NextResponse.json(result);
+
+  } catch (error) {
+
+    console.error(error);
+
+    return NextResponse.json(
+      { error: "Failed to update staff" },
+      { status: 500 }
+    );
+
+  }
 }

@@ -34,6 +34,7 @@ interface StaffMember {
   teacherProfile?: {
     teacherId: string
     specialization: string
+    joinDate: string
   }
   classAssignments?: {
     classId: string
@@ -73,6 +74,7 @@ export function StaffForm({
     specialization: initialData?.teacherProfile?.specialization || '',
     teacherId: initialData?.teacherProfile?.teacherId || '',
     classAssignments: initialData?.classAssignments || [],
+    joinDate: initialData?.teacherProfile?.joinDate || ''
   })
 
   const handleChange = (field: string, value: any) => {
@@ -140,6 +142,8 @@ export function StaffForm({
     if (formData.role === 'TEACHER') {
       payload.teacherProfile = {
         specialization: formData.specialization,
+        teacherId: formData.teacherId,
+        joinDate: formData.joinDate,
       }
       payload.classAssignments = formData.classAssignments?.map(c => ({
         classId: c.classId,

@@ -36,6 +36,7 @@ interface StaffMember {
   teacherProfile?: {
     teacherId: string
     specialization: string
+    joinDate: string
   }
   classAssignments?: {
     classId: string
