@@ -32,28 +32,10 @@ export default function SignupPage() {
     role: "TEACHER",
     specialization: "",
     joinDate: "",
-    selectedClasses: [] as string[],
-    selectedSubjects: [] as string[],
   });
   const [error, setError] = useState("");
   const [isVisible, setIsVisible] = useState(false);
-  const [classes, setClasses] = useState<Class[]>([]);
-  const [subjects, setSubjects] = useState<SubjectType[]>([]);
   const { signup, loading } = useSignup();
-
-  // fetch available classes
-  useEffect(() => {
-    async function fetchClasses() {
-      try {
-        const res = await fetch("/api/classes");
-        const data = await res.json();
-        setClasses(data.classes);
-      } catch (err) {
-        console.error("Failed to fetch classes", err);
-      }
-    }
-    fetchClasses();
-  }, []);
 
   // handle input change
   const handleChange = (
@@ -61,40 +43,6 @@ export default function SignupPage() {
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // handle class selection
-  const handleClassChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const classId = e.target.value;
-
-    if (!classId || classId.length < 2) {
-      return;
-    }
-
-    const classLevel = classes.find((clas) => clas.id === classId)?.level;
-    setFormData((prev) => ({
-      ...prev,
-      selectedClasses: [classId],
-      selectedSubjects: [],
-    }));
-
-    try {
-      const res = await fetch(`/api/subjects/${classLevel}`);
-      let data: SubjectType[] = await res.json();
-
-      // apply business rule: lower classes teach all subjects except ICT/French
-      const selectedClass = classes.find((c) => c.id === classId);
-      if (
-        selectedClass &&
-        ["Preschool", "Lower Primary"].includes(selectedClass.level)
-      ) {
-        data = data.filter((s) => !["ICT", "French"].includes(s.subjectName));
-      }
-
-      setSubjects(data);
-    } catch (err) {
-      console.error("Failed to fetch subjects", err);
-    }
   };
 
   // handle form submission
@@ -113,14 +61,6 @@ export default function SignupPage() {
     }
 
     if (formData.role === "TEACHER") {
-      if (!formData.selectedClasses.length) {
-        setError("Please select a class");
-        return;
-      }
-      if (!formData.selectedSubjects.length) {
-        setError("Please select at least one subject");
-        return;
-      }
       if (!formData.specialization) {
         setError("Specialization is required");
         return;
@@ -266,86 +206,6 @@ export default function SignupPage() {
                     required
                     className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                   />
-                </div>
-
-                <div className="space-y-3">
-                  <label className="text-sm font-medium">Select Class</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {classes.length > 0 ? (
-                      classes.map((c) => (
-                        <button
-                          key={c.id}
-                          type="button"
-                          onClick={() =>
-                            handleClassChange({
-                              target: { value: c.id },
-                            } as React.ChangeEvent<HTMLSelectElement>)
-                          }
-                          className={`p-3 rounded-lg border-2 transition-all text-sm font-medium text-center ${
-                            formData.selectedClasses[0] === c.id
-                              ? "border-primary bg-primary/10 text-primary"
-                              : "border-border bg-background hover:border-primary/50"
-                          }`}
-                        >
-                          <div className="font-semibold">Basic {c.grade}</div>
-                          <div className="text-xs opacity-75">{c.level}</div>
-                        </button>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground col-span-2">
-                        Loading classes...
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <label className="text-sm font-medium">Select Subjects</label>
-                  {subjects.length > 0 ? (
-                    <div className="space-y-2 max-h-48 overflow-y-auto border rounded-lg p-3 bg-muted/30">
-                      {subjects.map((s) => (
-                        <label
-                          key={s.id}
-                          className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 cursor-pointer transition-colors"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={formData.selectedSubjects.includes(s.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  selectedSubjects: [
-                                    ...prev.selectedSubjects,
-                                    s.id,
-                                  ],
-                                }));
-                              } else {
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  selectedSubjects:
-                                    prev.selectedSubjects.filter(
-                                      (id) => id !== s.id,
-                                    ),
-                                }));
-                              }
-                            }}
-                            className="w-4 h-4 rounded border-2 border-primary cursor-pointer"
-                          />
-                          <span className="text-sm font-medium">
-                            {s.subjectName}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground p-3 border rounded-lg bg-muted/30">
-                      Select a class to see available subjects
-                    </p>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    📌 For lower classes, ICT & French are excluded
-                  </p>
                 </div>
               </>
             )}

@@ -113,65 +113,65 @@ export async function POST(req: Request) {
             joinDate: joinDate ? new Date(joinDate) : new Date(),
 
             // Subjects teacher is generally qualified to teach
-            subjects:
-              Array.isArray(selectedSubjects) &&
-              selectedSubjects.length > 0
-                ? {
-                    connect: selectedSubjects.map((id: string) => ({
-                      id,
-                    })),
-                  }
-                : undefined,
+            // subjects:
+            //   Array.isArray(selectedSubjects) &&
+            //   selectedSubjects.length > 0
+            //     ? {
+            //         connect: selectedSubjects.map((id: string) => ({
+            //           id,
+            //         })),
+            //       }
+            //     : undefined,
           },
         });
 
         /* 1️⃣ Assign as FORM / CLASS TEACHER */
-        if (classId) {
-          await tx.class.update({
-            where: { id: classId },
-            data: {
-              classTeacherId: teacher.id,
-            },
-          });
-        }
+        // if (classId) {
+        //   await tx.class.update({
+        //     where: { id: classId },
+        //     data: {
+        //       classTeacherId: teacher.id,
+        //     },
+        //   });
+        // }
 
         /* 2️⃣ Assign subject teaching per class */
-        if (
-          Array.isArray(selectedClasses) &&
-          Array.isArray(selectedSubjects) &&
-          selectedClasses.length &&
-          selectedSubjects.length
-        ) {
-          const teacherClassSubjectData: { teacherId: string; classSubjectId: string }[] = [];
+        // if (
+        //   Array.isArray(selectedClasses) &&
+        //   Array.isArray(selectedSubjects) &&
+        //   selectedClasses.length &&
+        //   selectedSubjects.length
+        // ) {
+        //   const teacherClassSubjectData: { teacherId: string; classSubjectId: string }[] = [];
 
-          for (const classId of selectedClasses) {
-            for (const subjectId of selectedSubjects) {
-              // Try to find existing ClassSubject
-              let classSubject = await tx.classSubject.findFirst({
-                where: { classId, subjectId },
-              });
+        //   for (const classId of selectedClasses) {
+        //     for (const subjectId of selectedSubjects) {
+        //       // Try to find existing ClassSubject
+        //       let classSubject = await tx.classSubject.findFirst({
+        //         where: { classId, subjectId },
+        //       });
 
-              // If not exists, create it
-              if (!classSubject) {
-                classSubject = await tx.classSubject.create({
-                  data: { classId, subjectId },
-                });
-              }
+        //       // If not exists, create it
+        //       if (!classSubject) {
+        //         classSubject = await tx.classSubject.create({
+        //           data: { classId, subjectId },
+        //         });
+        //       }
 
-              // Prepare data for linking
-              teacherClassSubjectData.push({
-                teacherId: teacher.id,
-                classSubjectId: classSubject.id,
-              });
-            }
-          }
+        //       // Prepare data for linking
+        //       teacherClassSubjectData.push({
+        //         teacherId: teacher.id,
+        //         classSubjectId: classSubject.id,
+        //       });
+        //     }
+        //   }
 
-          // Bulk insert TeacherClassSubject links
-          await tx.teacherClassSubject.createMany({
-            data: teacherClassSubjectData,
-            skipDuplicates: true,
-          });
-        }
+        //   // Bulk insert TeacherClassSubject links
+        //   await tx.teacherClassSubject.createMany({
+        //     data: teacherClassSubjectData,
+        //     skipDuplicates: true,
+        //   });
+        // }
       }
 
       return newUser;
