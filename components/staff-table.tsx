@@ -30,6 +30,7 @@ interface StaffMember {
   status: string
   createdAt: string
   teacherProfile?: {
+    id: string
     teacherId: string
     specialization: string
     joinDate: string

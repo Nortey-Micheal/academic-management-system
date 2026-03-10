@@ -26,6 +26,7 @@ interface StaffMember {
   status: string
   createdAt: string
   teacherProfile?: {
+    id: string
     teacherId: string
     specialization: string
     joinDate: string
@@ -296,7 +297,7 @@ export default function StaffDetails() {
             </TabsList>
 
             <TabsContent value="class-teacher" className="space-y-4">
-              <ClassTeacherAssignment teacherId={selectedStaff.id} teacherName={`${selectedStaff.firstName} ${selectedStaff.lastName}`} userRole={currentUser.role}/>
+              <ClassTeacherAssignment teacherId={selectedStaff.teacherProfile?.id!} teacherName={`${selectedStaff.firstName} ${selectedStaff.lastName}`} userRole={currentUser.role}/>
             </TabsContent>
 
             <TabsContent value="subjects" className="space-y-4">
