@@ -10,7 +10,16 @@ export async function GET() {
           not: "STUDENT"
         }
       },
-      include: {
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
         teacherProfile: true
       },
       orderBy: {
@@ -21,6 +30,7 @@ export async function GET() {
     return NextResponse.json(staff);
 
   } catch (error) {
+    console.log(error)
     return NextResponse.json(
       { error: "Failed to fetch staff" },
       { status: 500 }

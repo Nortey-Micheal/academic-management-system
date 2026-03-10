@@ -129,7 +129,6 @@ export function StaffForm({
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log(formData)
     e.preventDefault()
     const payload: any = {
       firstName: formData.firstName,
@@ -152,7 +151,11 @@ export function StaffForm({
       }))
     }
 
-    await onSubmit(payload)
+    try {
+      await onSubmit(payload)
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   return (
@@ -278,9 +281,9 @@ export function StaffForm({
                 </Select>
 
                 {/* Subjects */}
-                {assignment.classId && assignment.availableSubjects?.length && (
+                {assignment.classId && assignment.availableSubjects?.length! > 0 && (
                   <div className="grid grid-cols-2 gap-2">
-                    {assignment.availableSubjects.map(subject => (
+                    {assignment.availableSubjects?.map(subject => (
                       <label key={subject.id} className="flex items-center gap-2">
                         <input
                           type="checkbox"

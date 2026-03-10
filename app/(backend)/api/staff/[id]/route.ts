@@ -108,11 +108,11 @@ export async function PATCH(
 
       }
 
-      return user;
+      return {...user,teacherProfile: {...teacher}};
 
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json({...result,password:undefined});
 
   } catch (error) {
 

@@ -99,8 +99,12 @@ export function AddStaffDialog({
           availableClasses={availableClasses}
           fetchSubjects={fetchSubjects}
           onSubmit={async (data) => {
-            await onSubmit(data)
-            onOpenChange(false)
+            try {
+              await onSubmit(data)
+              onOpenChange(false)
+            } catch (err) {
+              console.error(err)
+            }
           }}
           onCancel={() => onOpenChange(false)}
         />
@@ -134,8 +138,12 @@ export function EditStaffDialog({
           availableClasses={availableClasses}
           fetchSubjects={fetchSubjects}
           onSubmit={async (data) => {
-            await onSubmit(data)
-            onOpenChange(false)
+            try {
+              await onSubmit(data)
+              onOpenChange(false)
+            } catch (err) {
+              console.error(err)
+            }
           }}
           onCancel={() => onOpenChange(false)}
         />
