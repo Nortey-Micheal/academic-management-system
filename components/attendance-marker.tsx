@@ -1,325 +1,448 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { format } from "date-fns"
+import { useSelector } from "react-redux"
+
+import { StoreState } from "@/lib/store"
+import { ClassWithStudents, StudentWithRelations } from "@/lib/types"
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+
 import { CalendarIcon, Check, X, Clock, FileX } from "lucide-react"
-import { format } from "date-fns"
-import type { Student, Class } from "@/lib/types"
-import { DUMMY_CLASSES, DUMMY_STUDENTS,DUMMY_ATTENDANCE_RECORDS } from "@/lib/dummy-data"
 
 export function AttendanceMarker() {
-  const [classes, setClasses] = useState<Class[]>([])
-  const [students, setStudents] = useState<Student[]>([])
+
+  const user = useSelector((state: StoreState) => state.user)
+
+  const isAdmin = user.role === "ADMIN"
+
+  const [classes, setClasses] = useState<ClassWithStudents[]>([])
+  const [students, setStudents] = useState<StudentWithRelations[]>([])
   const [selectedClass, setSelectedClass] = useState("")
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
+
   const [attendance, setAttendance] = useState<Record<string, string>>({})
+
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
 
+  /* -------------------------------- */
+  /* INITIAL LOAD                     */
+  /* -------------------------------- */
+
   useEffect(() => {
-    fetchClasses()
+
+    if (isAdmin) fetchClasses()
+    else fetchTeacherClass()
+
   }, [])
 
+  /* -------------------------------- */
+  /* CLASS + DATE EFFECT              */
+  /* -------------------------------- */
+
   useEffect(() => {
-    if (selectedClass) {
-      fetchStudents()
-      fetchAttendance()
-    }
-  }, [selectedClass, selectedDate])
+
+    if (!selectedClass) return
+
+    const selected = classes.find(c => c.id === selectedClass)
+    if (!selected) return
+
+    const classStudents = selected.students || []
+
+    // SET STUDENTS FIRST (ALWAYS)
+    setStudents(classStudents)
+
+    // DEFAULT ATTENDANCE
+    const defaultAttendance: Record<string,string> = {}
+
+    classStudents.forEach(student => {
+      defaultAttendance[student.id] = "present"
+    })
+
+    setAttendance(defaultAttendance)
+
+    // FETCH EXISTING ATTENDANCE
+    fetchAttendance(selectedClass)
+
+  }, [selectedClass, selectedDate, classes])
+
+  /* -------------------------------- */
+  /* FETCH CLASSES                    */
+  /* -------------------------------- */
 
   const fetchClasses = async () => {
+
     try {
-      // const response = await fetch("/api/classes")
-      // const data = await response.json()
-      // setClasses(data.classes)
-      setClasses(DUMMY_CLASSES)
-    } catch (error) {
-      console.error("[v0] Error fetching classes:", error)
-      // Use centralized dummy data for local development
-      setClasses(DUMMY_CLASSES)
+      const res = await fetch("/api/classes")
+      const data = await res.json()
+      setClasses(data.classes || [])
+    } catch (err) {
+      console.error("Failed to load classes", err)
     }
+
   }
 
-  const fetchStudents = async () => {
+  /* -------------------------------- */
+  /* FETCH TEACHER CLASS              */
+  /* -------------------------------- */
+
+  const fetchTeacherClass = async () => {
+
+    try {
+      const res = await fetch(`/api/classes/teacher/${user.id}`)
+      const data = await res.json()
+
+      if (!data.class) return
+
+      setClasses([data.class])
+      setSelectedClass(data.class.id)
+
+    } catch (err) {
+      console.error("Failed to fetch teacher class", err)
+    }
+
+  }
+
+  /* -------------------------------- */
+  /* CLASS CHANGE                     */
+  /* -------------------------------- */
+
+  const handleClassChange = (classId: string) => {
+    setSelectedClass(classId)
+  }
+
+  /* -------------------------------- */
+  /* FETCH ATTENDANCE                 */
+  /* -------------------------------- */
+
+  const fetchAttendance = async (classId: string) => {
+
     setLoading(true)
+
     try {
-      // const response = await fetch(`/api/students?classId=${selectedClass}`)
-      // const data = await response.json()
-      // setStudents(data.students)
 
-      // // Initialize attendance with 'present' for all students
-      // const initialAttendance: Record<string, string> = {}
-      // data.students.forEach((student: Student) => {
-      //   initialAttendance[student._id!] = "present"
-      // })
-      // setAttendance(initialAttendance)
-
-      const fallback = DUMMY_STUDENTS.filter((s) => s.classId === selectedClass || selectedClass === "")
-      setStudents(fallback)
-
-      const initialAttendance: Record<string, string> = {}
-      fallback.forEach((s) => {
-        initialAttendance[s._id!] = "present"
-      })
-      setAttendance(initialAttendance)
-    } catch (error) {
-      console.error("[v0] Error fetching students:", error)
-      // Use centralized dummy data for local development
-      const fallback = DUMMY_STUDENTS.filter((s) => s.classId === selectedClass || selectedClass === "")
-      setStudents(fallback)
-
-      const initialAttendance: Record<string, string> = {}
-      fallback.forEach((s) => {
-        initialAttendance[s._id!] = "present"
-      })
-      setAttendance(initialAttendance)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchAttendance = async () => {
-    try {
       const dateStr = format(selectedDate, "yyyy-MM-dd")
-      // const response = await fetch(`/api/attendance?classId=${selectedClass}&date=${dateStr}`)
-      // const data = await response.json()
-      const data = DUMMY_ATTENDANCE_RECORDS
 
-      if (data.length > 0) {
-        const existingAttendance: Record<string, string> = {}
-        data.forEach((record: any) => {
-          existingAttendance[record.studentId] = record.status
-        })
-        setAttendance(existingAttendance)
-      }
-    } catch (error) {
-      console.error("[v0] Error fetching attendance:", error)
-    }
-  }
+      const url = isAdmin
+        ? `/api/attendance/admin?classId=${classId}&date=${dateStr}`
+        : `/api/attendance/teacher?teacherId=${user.id}&date=${dateStr}`
 
-  const handleStatusChange = (studentId: string, status: string) => {
-    setAttendance((prev) => ({
-      ...prev,
-      [studentId]: status,
-    }))
-  }
+      const res = await fetch(url)
+      const data = await res.json()
 
-  const handleSave = async () => {
-    setSaving(true)
-    try {
-      const records = Object.entries(attendance).map(([studentId, status]) => ({
-        studentId,
-        status,
+      if (!data.attendance) return
+
+      const existing: Record<string,string> = {}
+
+      data.attendance.forEach((record: any) => {
+        existing[record.studentId] = record.status
+      })
+
+      // MERGE (CRITICAL)
+      setAttendance(prev => ({
+        ...prev,
+        ...existing
       }))
 
-      const response = await fetch("/api/attendance", {
+    } catch (err) {
+
+      console.error("Attendance fetch error", err)
+
+    } finally {
+
+      setLoading(false)
+
+    }
+
+  }
+
+  /* -------------------------------- */
+  /* CHANGE STATUS                    */
+  /* -------------------------------- */
+
+  const handleStatusChange = (studentId: string, status: string) => {
+
+    if (isAdmin) return
+
+    setAttendance(prev => ({
+      ...prev,
+      [studentId]: status
+    }))
+
+  }
+
+  /* -------------------------------- */
+  /* SAVE ATTENDANCE                  */
+  /* -------------------------------- */
+
+  const handleSave = async () => {
+
+    setSaving(true)
+
+    try {
+
+      const records = students.map(student => ({
+        studentId: student.id,
+        status: attendance[student.id] || "present"
+      }))
+
+      await fetch("/api/attendance", {
+
         method: "POST",
         headers: { "Content-Type": "application/json" },
+
         body: JSON.stringify({
           classId: selectedClass,
           date: format(selectedDate, "yyyy-MM-dd"),
-          records,
-        }),
+          records
+        })
+
       })
 
-      if (response.ok) {
-        alert("Attendance saved successfully!")
-      }
-    } catch (error) {
-      console.error("[v0] Error saving attendance:", error)
-      alert("Failed to save attendance")
+    } catch (err) {
+
+      console.error("Save error", err)
+
     } finally {
+
       setSaving(false)
+
     }
+
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "present":
-        return <Check className="w-4 h-4" />
-      case "absent":
-        return <X className="w-4 h-4" />
-      case "late":
-        return <Clock className="w-4 h-4" />
-      case "excused":
-        return <FileX className="w-4 h-4" />
-      default:
-        return null
-    }
-  }
+  /* -------------------------------- */
+  /* SPLIT BY GENDER                  */
+  /* -------------------------------- */
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "present":
-        return "bg-green-100 text-green-700 hover:bg-green-200"
-      case "absent":
-        return "bg-red-100 text-red-700 hover:bg-red-200"
-      case "late":
-        return "bg-amber-100 text-amber-700 hover:bg-amber-200"
-      case "excused":
-        return "bg-blue-100 text-blue-700 hover:bg-blue-200"
-      default:
-        return ""
-    }
-  }
+  const sortedStudents = [...students].sort((a, b) =>
+    a.user.lastName.localeCompare(b.user.lastName)
+  )
+
+  const maleStudents = sortedStudents.filter(s => s.gender === 
+    'male'
+  )
+  const femaleStudents = sortedStudents.filter(s => s.gender === 'female')
+
+  /* -------------------------------- */
+  /* STATS                            */
+  /* -------------------------------- */
 
   const stats = {
-    present: Object.values(attendance).filter((s) => s === "present").length,
-    absent: Object.values(attendance).filter((s) => s === "absent").length,
-    late: Object.values(attendance).filter((s) => s === "late").length,
-    excused: Object.values(attendance).filter((s) => s === "excused").length,
+
+    present: students.filter(s => attendance[s.id] === "present").length,
+    absent: students.filter(s => attendance[s.id] === "absent").length,
+    late: students.filter(s => attendance[s.id] === "late").length,
+    excused: students.filter(s => attendance[s.id] === "excused").length
+
   }
 
+  const getIcon = (status: string) => {
+
+    if (status === "present") return <Check className="w-4 h-4" />
+    if (status === "absent") return <X className="w-4 h-4" />
+    if (status === "late") return <Clock className="w-4 h-4" />
+    if (status === "excused") return <FileX className="w-4 h-4" />
+
+  }
+
+  /* -------------------------------- */
+  /* RENDER LIST                      */
+  /* -------------------------------- */
+
+  const renderStudentList = (list: StudentWithRelations[]) => (
+
+    <div className="space-y-3">
+
+      {list.map(student => (
+
+        <div
+          key={student.id}
+          className="flex items-center justify-between border p-4 rounded-lg"
+        >
+
+          <div>
+            <div className="font-medium">
+              {student.user.lastName} {student.user.firstName}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {student.studentId}
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+
+            {["present","absent","late","excused"].map(status => (
+
+              <Button
+                key={status}
+                size="sm"
+                disabled={isAdmin}
+                variant={attendance[student.id] === status ? "default" : "outline"}
+                onClick={() => handleStatusChange(student.id, status)}
+              >
+                {getIcon(status)}
+                <span className="ml-1 capitalize">{status}</span>
+              </Button>
+
+            ))}
+
+          </div>
+
+        </div>
+
+      ))}
+
+    </div>
+
+  )
+
+  /* -------------------------------- */
+  /* UI                               */
+  /* -------------------------------- */
+
   return (
+
     <div className="space-y-6">
+
       <Card>
+
         <CardHeader>
-          <CardTitle>Mark Attendance</CardTitle>
-          <CardDescription>Select class and date to mark student attendance</CardDescription>
+          <CardTitle>Attendance</CardTitle>
+          <CardDescription>
+            {isAdmin
+              ? "View attendance records"
+              : "Mark and manage class attendance"}
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+
+        <CardContent className="grid gap-4 md:grid-cols-2">
+
+          {isAdmin && (
             <div className="space-y-2">
               <Label>Class</Label>
-              <Select value={selectedClass} onValueChange={setSelectedClass}>
+              <Select value={selectedClass} onValueChange={handleClassChange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a class" />
+                  <SelectValue placeholder="Select class" />
                 </SelectTrigger>
                 <SelectContent>
-                  {classes?.map((c) => (
-                    <SelectItem key={c._id} value={c._id!}>
-                      {c.className}
+                  {classes.map(c => (
+                    <SelectItem key={c.id} value={c.id}>
+                      Basic {c.grade} - {c.section}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal bg-transparent">
-                    <CalendarIcon className="mr-2 w-4 h-4" />
-                    {format(selectedDate, "PPP")}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={selectedDate} onSelect={(date) => date && setSelectedDate(date)} />
-                </PopoverContent>
-              </Popover>
-            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label>Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start">
+                  <CalendarIcon className="mr-2 w-4 h-4" />
+                  {format(selectedDate, "PPP")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => date && setSelectedDate(date)}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
+
         </CardContent>
+
       </Card>
 
-      {selectedClass && students.length > 0 && (
+      {selectedClass && (
+
         <>
+
+          {/* STATS */}
           <div className="grid gap-4 md:grid-cols-4">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-green-100">
-                    <Check className="w-5 h-5 text-green-700" />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold">{stats.present}</div>
-                    <div className="text-sm text-muted-foreground">Present</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-red-100">
-                    <X className="w-5 h-5 text-red-700" />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold">{stats.absent}</div>
-                    <div className="text-sm text-muted-foreground">Absent</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-amber-100">
-                    <Clock className="w-5 h-5 text-amber-700" />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold">{stats.late}</div>
-                    <div className="text-sm text-muted-foreground">Late</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-blue-100">
-                    <FileX className="w-5 h-5 text-blue-700" />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold">{stats.excused}</div>
-                    <div className="text-sm text-muted-foreground">Excused</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <Card><CardContent className="pt-6">Present: {stats.present}</CardContent></Card>
+            <Card><CardContent className="pt-6">Absent: {stats.absent}</CardContent></Card>
+            <Card><CardContent className="pt-6">Late: {stats.late}</CardContent></Card>
+            <Card><CardContent className="pt-6">Excused: {stats.excused}</CardContent></Card>
           </div>
 
+          {/* STUDENTS */}
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Students ({students.length})</CardTitle>
+
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Students ({students.length})</CardTitle>
+
+              {!isAdmin && (
                 <Button onClick={handleSave} disabled={saving}>
                   {saving ? "Saving..." : "Save Attendance"}
                 </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading students...</div>
-              ) : (
-                <div className="space-y-3">
-                  {students.map((student) => (
-                    <div key={student._id} className="flex items-center justify-between p-4 rounded-lg border">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <div className="font-medium">
-                            {student.firstName} {student.lastName}
-                          </div>
-                          <div className="text-sm text-muted-foreground">{student.studentId}</div>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        {["present", "absent", "late", "excused"].map((status) => (
-                          <Button
-                            key={status}
-                            variant={attendance[student._id!] === status ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handleStatusChange(student._id!, status)}
-                            className={attendance[student._id!] === status ? getStatusColor(status) : ""}
-                          >
-                            {getStatusIcon(status)}
-                            <span className="ml-1 capitalize">{status}</span>
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
               )}
+
+            </CardHeader>
+
+            <CardContent>
+
+              {loading ? (
+
+                <div className="text-center py-6 text-muted-foreground">
+                  Loading attendance...
+                </div>
+
+              ) : (
+
+                <div className="space-y-6">
+
+                  {/* MALES */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">
+                      Male Students ({maleStudents.length})
+                    </h3>
+
+                    {maleStudents.length > 0
+                      ? renderStudentList(maleStudents)
+                      : <p className="text-sm text-muted-foreground">No male students</p>
+                    }
+                  </div>
+
+                  {/* FEMALES */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">
+                      Female Students ({femaleStudents.length})
+                    </h3>
+
+                    {femaleStudents.length > 0
+                      ? renderStudentList(femaleStudents)
+                      : <p className="text-sm text-muted-foreground">No female students</p>
+                    }
+                  </div>
+
+                </div>
+
+              )}
+
             </CardContent>
+
           </Card>
+
         </>
+
       )}
+
     </div>
+
   )
+
 }

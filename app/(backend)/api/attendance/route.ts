@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import Attendance from "../../models/attendanceSchema"
-import { ObjectId } from "mongodb"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 
@@ -8,37 +6,39 @@ import { prisma } from "@/lib/prisma"
 // Validation schemas
 // ---------------------
 const getAttendanceSchema = z.object({
-  classId: z.string().min(1, "classId is required"),
   date: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Invalid date format",
   }),
 })
 
 const attendanceRecordSchema = z.object({
-  studentId: z.string().min(1, "studentId is required"),
+  studentId: z.string().min(1),
   status: z.enum(["present", "absent", "late", "excused"]),
   notes: z.string().optional(),
 })
 
 const postAttendanceSchema = z.object({
-  classId: z.string().min(1),
   date: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Invalid date format",
   }),
-  records: z.array(attendanceRecordSchema).min(1, "At least one record is required"),
+  records: z.array(attendanceRecordSchema).min(1),
 })
 
-// ---------------------
-// GET: Fetch attendance for a class and date
-// ---------------------
+/* ---------------------------------------------------
+GET: Get attendance for class teacher's class
+--------------------------------------------------- */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const classId = searchParams.get("classId") || ""
-    const date = searchParams.get("date") || ""
 
-    // Validate query
-    getAttendanceSchema.parse({ classId, date })
+    const date = searchParams.get("date") || ""
+    const teacherId = request.headers.get("x-teacher-id") || ""
+
+    getAttendanceSchema.parse({ date })
+
+    if (!teacherId) {
+      return NextResponse.json({ error: "Teacher ID required" }, { status: 400 })
+    }
 
     const attendanceDate = new Date(date)
     attendanceDate.setHours(0, 0, 0, 0)
@@ -46,15 +46,62 @@ export async function GET(request: NextRequest) {
     const nextDay = new Date(attendanceDate)
     nextDay.setDate(nextDay.getDate() + 1)
 
+    /* ---------------------------------------------
+    Find class where this teacher is class teacher
+    --------------------------------------------- */
+
+    const teacherClass = await prisma.class.findFirst({
+      where: {
+        classTeacherId: teacherId,
+      },
+      select: {
+        id: true,
+        level: true,
+        grade: true,
+        section: true,
+      },
+    })
+
+    if (!teacherClass) {
+      return NextResponse.json(
+        { error: "Teacher is not assigned to any class" },
+        { status: 404 }
+      )
+    }
+
+    /* ---------------------------------------------
+    Get attendance for that class
+    --------------------------------------------- */
+
     const attendance = await prisma.attendance.findMany({
       where: {
-        classId,
-        // date: { : attendanceDate, $lt: nextDay },
-      }
+        classId: teacherClass.id,
+        date: {
+          gte: attendanceDate,
+          lt: nextDay,
+        },
+      },
+      include: {
+        student: {
+          select: {
+            id: true,
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
     })
 
     return NextResponse.json({
-      attendance
+      class: teacherClass,
+      attendance,
     })
   } catch (error: any) {
     console.error("Error fetching attendance:", error)
@@ -67,16 +114,21 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// ---------------------
-// POST: Create/update attendance for a class
-// ---------------------
+/* ---------------------------------------------------
+POST: Save attendance for teacher's class
+--------------------------------------------------- */
+
 export async function POST(request: NextRequest) {
   try {
+    const teacherId = request.headers.get("x-teacher-id") || ""
     const body = await request.json()
 
-    // Validate body
+    if (!teacherId) {
+      return NextResponse.json({ error: "Teacher ID required" }, { status: 400 })
+    }
+
     const parsedData = postAttendanceSchema.parse(body)
-    const { classId, date, records } = parsedData
+    const { date, records } = parsedData
 
     const attendanceDate = new Date(date)
     attendanceDate.setHours(0, 0, 0, 0)
@@ -84,30 +136,62 @@ export async function POST(request: NextRequest) {
     const nextDay = new Date(attendanceDate)
     nextDay.setDate(nextDay.getDate() + 1)
 
-    // Delete existing attendance for the class & date
+    /* ---------------------------------------------
+    Get teacher's class
+    --------------------------------------------- */
+
+    const teacherClass = await prisma.class.findFirst({
+      where: {
+        classTeacherId: teacherId,
+      },
+      select: {
+        id: true,
+      },
+    })
+
+    if (!teacherClass) {
+      return NextResponse.json(
+        { error: "Teacher is not assigned to any class" },
+        { status: 403 }
+      )
+    }
+
+    const classId = teacherClass.id
+
+    /* ---------------------------------------------
+    Remove existing attendance for that day
+    --------------------------------------------- */
+
     await prisma.attendance.deleteMany({
       where: {
         classId,
-        // date: { $gte: attendanceDate, $lt: nextDay },
-      }
+        date: {
+          gte: attendanceDate,
+          lt: nextDay,
+        },
+      },
     })
 
-    // Insert new attendance records
+    /* ---------------------------------------------
+    Prepare records
+    --------------------------------------------- */
+
     const attendanceRecords = records.map((r) => ({
       studentId: r.studentId,
       classId,
       date: attendanceDate,
       status: r.status,
       notes: r.notes || "",
-      markedBy: null, // remove auth, no user ID
-      createdAt: new Date(),
+      markedBy: teacherId,
     }))
+
+    /* ---------------------------------------------
+    Insert records
+    --------------------------------------------- */
 
     if (attendanceRecords.length > 0) {
       await prisma.attendance.createMany({
-        data: {
-          ...attendanceRecords
-        }
+        data: attendanceRecords,
       })
     }
 
@@ -117,10 +201,6 @@ export async function POST(request: NextRequest) {
 
     if (error.name === "ZodError") {
       return NextResponse.json({ error: error.errors }, { status: 400 })
-    }
-
-    if (error.name === "ValidationError") {
-      return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
     return NextResponse.json({ error: "Failed to save attendance" }, { status: 500 })
