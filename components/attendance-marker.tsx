@@ -240,7 +240,6 @@ export function AttendanceMarker() {
 
     present: students.filter(s => attendance[s.id] === "present").length,
     absent: students.filter(s => attendance[s.id] === "absent").length,
-    late: students.filter(s => attendance[s.id] === "late").length,
     excused: students.filter(s => attendance[s.id] === "excused").length
 
   }
@@ -249,7 +248,6 @@ export function AttendanceMarker() {
 
     if (status === "present") return <Check className="w-4 h-4" />
     if (status === "absent") return <X className="w-4 h-4" />
-    if (status === "late") return <Clock className="w-4 h-4" />
     if (status === "excused") return <FileX className="w-4 h-4" />
 
   }
@@ -280,7 +278,7 @@ export function AttendanceMarker() {
 
           <div className="flex gap-2">
 
-            {["present","absent","late","excused"].map(status => (
+            {["present","absent","excused"].map(status => (
 
               <Button
                 key={status}
@@ -381,7 +379,6 @@ export function AttendanceMarker() {
           <div className="grid gap-4 md:grid-cols-4">
             <Card><CardContent className="pt-6">Present: {stats.present}</CardContent></Card>
             <Card><CardContent className="pt-6">Absent: {stats.absent}</CardContent></Card>
-            <Card><CardContent className="pt-6">Late: {stats.late}</CardContent></Card>
             <Card><CardContent className="pt-6">Excused: {stats.excused}</CardContent></Card>
           </div>
 
