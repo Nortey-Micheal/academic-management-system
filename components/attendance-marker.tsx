@@ -344,6 +344,12 @@ export function AttendanceMarker() {
             </div>
           )}
 
+          {
+            !isAdmin && (
+              <p>Basic {classes[0]?.grade}</p>
+            )
+          }
+
           <div className="space-y-2">
             <Label>Date</Label>
             <Popover>
