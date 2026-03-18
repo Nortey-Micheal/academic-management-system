@@ -265,10 +265,10 @@ export function AttendanceMarker() {
 
         <div
           key={student.id}
-          className="flex items-center justify-between border p-4 rounded-lg"
+          className="flex flex-col lg:flex-row gap-5 items-center justify-between border p-4 rounded-lg"
         >
 
-          <div>
+          <div className="flex lg:block w-full gap-3 items-center  ">
             <div className="font-medium">
               {student.user.lastName} {student.user.firstName}
             </div>
@@ -277,7 +277,7 @@ export function AttendanceMarker() {
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap w-full lg:justify-end">
 
             {["present","absent","excused"].map(status => (
 
