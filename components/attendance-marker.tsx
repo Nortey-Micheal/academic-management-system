@@ -140,16 +140,18 @@ export function AttendanceMarker() {
 
       if (!data.attendance) return
 
-      const existing: Record<string,string> = {}
+      // const existing: Record<string,string> = {}
 
-      data.attendance.forEach((record: any) => {
-        existing[record.studentId] = record.status
-      })
+      // data.attendance.forEach((record: any) => {
+      //   existing[record.studentId] = record.status
+      // })
+
+      // console.log(existing)
 
       // MERGE (CRITICAL)
       setAttendance(prev => ({
         ...prev,
-        ...existing
+        ...data.attendance
       }))
 
     } catch (err) {
@@ -195,16 +197,15 @@ export function AttendanceMarker() {
       }))
 
       await fetch("/api/attendance", {
-
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-
+        headers: {
+          "Content-Type": "application/json",
+          "x-teacher-id": user.id, // ✅ IMPORTANT
+        },
         body: JSON.stringify({
-          classId: selectedClass,
           date: format(selectedDate, "yyyy-MM-dd"),
           records
         })
-
       })
 
     } catch (err) {

@@ -120,16 +120,29 @@ POST: Save attendance for teacher's class
 
 export async function POST(request: NextRequest) {
   try {
-    const teacherId = request.headers.get("x-teacher-id") || ""
-    const body = await request.json()
+    /* ---------------------------------------------
+    GET USER ID FROM HEADER
+    --------------------------------------------- */
+    const userId = request.headers.get("x-teacher-id") || ""
 
-    if (!teacherId) {
-      return NextResponse.json({ error: "Teacher ID required" }, { status: 400 })
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Teacher ID required" },
+        { status: 400 }
+      )
     }
 
+    /* ---------------------------------------------
+    PARSE BODY
+    --------------------------------------------- */
+    const body = await request.json()
     const parsedData = postAttendanceSchema.parse(body)
+
     const { date, records } = parsedData
 
+    /* ---------------------------------------------
+    NORMALIZE DATE (START OF DAY)
+    --------------------------------------------- */
     const attendanceDate = new Date(date)
     attendanceDate.setHours(0, 0, 0, 0)
 
@@ -137,16 +150,29 @@ export async function POST(request: NextRequest) {
     nextDay.setDate(nextDay.getDate() + 1)
 
     /* ---------------------------------------------
-    Get teacher's class
+    GET TEACHER FROM USER ID
     --------------------------------------------- */
+    const teacher = await prisma.teacher.findUnique({
+      where: { userId }
+    })
 
+    if (!teacher) {
+      return NextResponse.json(
+        { error: "Teacher not found" },
+        { status: 404 }
+      )
+    }
+
+    /* ---------------------------------------------
+    GET CLASS WHERE TEACHER IS CLASS TEACHER
+    --------------------------------------------- */
     const teacherClass = await prisma.class.findFirst({
       where: {
-        classTeacherId: teacherId,
+        classTeacherId: teacher.id
       },
       select: {
-        id: true,
-      },
+        id: true
+      }
     })
 
     if (!teacherClass) {
@@ -159,50 +185,61 @@ export async function POST(request: NextRequest) {
     const classId = teacherClass.id
 
     /* ---------------------------------------------
-    Remove existing attendance for that day
+    DELETE EXISTING ATTENDANCE FOR THAT DAY
     --------------------------------------------- */
-
     await prisma.attendance.deleteMany({
       where: {
         classId,
         date: {
           gte: attendanceDate,
-          lt: nextDay,
-        },
-      },
+          lt: nextDay
+        }
+      }
     })
 
     /* ---------------------------------------------
-    Prepare records
+    PREPARE NEW RECORDS
     --------------------------------------------- */
-
     const attendanceRecords = records.map((r) => ({
       studentId: r.studentId,
       classId,
       date: attendanceDate,
       status: r.status,
       notes: r.notes || "",
-      markedBy: teacherId,
+      markedBy: userId // ✅ use Teacher.id, NOT userId
     }))
 
     /* ---------------------------------------------
-    Insert records
+    INSERT RECORDS
     --------------------------------------------- */
-
     if (attendanceRecords.length > 0) {
       await prisma.attendance.createMany({
-        data: attendanceRecords,
+        data: attendanceRecords
       })
     }
 
+    /* ---------------------------------------------
+    SUCCESS RESPONSE
+    --------------------------------------------- */
     return NextResponse.json({ success: true })
+
   } catch (error: any) {
+
     console.error("Error saving attendance:", error)
 
+    /* ---------------------------------------------
+    VALIDATION ERROR (ZOD)
+    --------------------------------------------- */
     if (error.name === "ZodError") {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      return NextResponse.json(
+        { error: error.errors },
+        { status: 400 }
+      )
     }
 
-    return NextResponse.json({ error: "Failed to save attendance" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to save attendance" },
+      { status: 500 }
+    )
   }
 }
