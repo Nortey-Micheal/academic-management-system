@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Dispatch, SetStateAction } from 'react';
 import { Button } from '@/components/ui/button';
 import { ClassWithStudents, StudentWithRelations } from '@/lib/types';
+import { toast } from 'sonner';
 
 interface ClassSelectorProps {
   onSelectStudent: (
@@ -36,13 +37,13 @@ const ClassSelector: React.FC<ClassSelectorProps> = ({ onSelectStudent, setTerm,
       try {
         const response = await fetch('/api/classes');
         if (!response.ok) {
-          throw new Error('Failed to load students data');
+          toast.error('Failed to load students data');
         }
 
         const data = await response.json();
         setClasses(data.classes);
 
-        if (data.classes.length > 0) {
+        if (data?.classes?.length! > 0) {
           setSelectedClass(data.classes[0].id);
         }
       } catch (error) {
@@ -70,7 +71,7 @@ const ClassSelector: React.FC<ClassSelectorProps> = ({ onSelectStudent, setTerm,
     }
   },[selectedTerm,selectedYear])
 
-  const currentClass = classes.find(c => c.id === selectedClass);
+  const currentClass = classes?.find(c => c?.id === selectedClass);
 
   const handleSelectStudent = () => {
     if (!currentClass || !selectedStudent) return;
@@ -145,7 +146,7 @@ const ClassSelector: React.FC<ClassSelectorProps> = ({ onSelectStudent, setTerm,
             }}
             className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {classes.map(cls => (
+            {classes?.map(cls => (
               <option key={cls.id} value={cls.id}>
                 {`Basic ${cls.grade} - ${cls.section}`}
               </option>

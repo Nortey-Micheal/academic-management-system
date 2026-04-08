@@ -63,7 +63,7 @@ export function StudentsTable() {
       setClasses(classesData.classes)
 
       // Auto select first class
-      if (classesData.classes.length > 0) {
+      if (classesData?.classes?.length > 0) {
         setSelectedClassId(classesData.classes[0].id)
       }
     } catch (error) {
@@ -109,14 +109,14 @@ export function StudentsTable() {
   }
 
   const selectedClass = useMemo(
-    () => classes.find((c) => c.id === selectedClassId),
+    () => classes?.find((c) => c.id === selectedClassId),
     [classes, selectedClassId],
   )
 
   const filteredStudents = useMemo(() => {
     return students
-      .filter((student) => student.classId === selectedClassId)
-      .filter(
+      ?.filter((student) => student.classId === selectedClassId)
+      ?.filter(
         (student) =>
           student.user?.firstName
             ?.toLowerCase()
@@ -173,7 +173,7 @@ export function StudentsTable() {
             <SelectValue placeholder="Select a class" />
           </SelectTrigger>
           <SelectContent>
-            {classes.map((cls) => (
+            {classes?.map((cls) => (
               <SelectItem key={cls.id} value={cls.id}>
                 {formatClassName(cls)}
               </SelectItem>

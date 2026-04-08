@@ -36,7 +36,7 @@ export default function AssessmentPage() {
         const data = await response.json()
         setAssessments(data)
       } catch (error:any) {
-        toast.error(error)
+        toast.error(error.error)
       }
     }
     fetchClassAssessments()
@@ -52,7 +52,7 @@ export default function AssessmentPage() {
         setAcademicTerm(`${data.term.termNumber}`)
         setAcademicYear(data.academicYear.year)
       } catch (error:any) {
-        toast.error(error)
+        toast.error(error.error)
       }
       
     }
