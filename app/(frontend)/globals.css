@@ -1,6 +1,22 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@font-face {
+  font-family: "Sansita";
+  src: url("/fonts/Sansita/Sansita.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "VendSans";
+  src: url("/fonts/Vend_Sans/VendSans.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -77,6 +93,8 @@
 
 @theme inline {
   --font-sans: "Geist", "Geist Fallback";
+  --font-sansita: 'Sansita';
+  --font-vend: 'VendSans';
   --font-mono: "Geist Mono", "Geist Mono Fallback";
   --color-background: var(--background);
   --color-foreground: var(--foreground);

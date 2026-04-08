@@ -2,11 +2,8 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
-import { redirect } from "next/navigation"
 import ReduxProvider from "@/lib/store/provider"
 import { Toaster } from "sonner"
-import { useSelector } from "react-redux"
-import { StoreState } from "@/lib/store"
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
@@ -36,7 +33,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`font-sans antialiased min-h-screen bg-background`}>
+      <body className={`font-vend antialiased min-h-screen bg-background`}>
         <Toaster position="top-center" richColors/>
         <ReduxProvider>
           <div className="">{children}</div>
