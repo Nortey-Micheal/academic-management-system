@@ -19,6 +19,7 @@ import Image from "next/image"
 import { Button } from "./ui/button"
 import { useEffect, useState } from "react"
 import { User } from "@/lib/generated/prisma/client"
+import { getSchoolConfig } from "@/config"
 
 interface DashboardNavProps {
   user: User
@@ -81,6 +82,8 @@ const navItems = [
   }
 ]
 
+const school = getSchoolConfig()
+
 export default function DashboardNav({ user }: DashboardNavProps) {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
@@ -122,7 +125,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
       {/* Mobile top bar */}
       <div className="md:hidden sticky top-0 z-40 bg-blue-400/90 backdrop-blur-md text-primary-foreground p-2 flex items-center justify-between">
         <div className="flex items-center">
-          <Image width={60} height={50} src="/logo.webp" alt="Mount Olives School Logo" />
+          <Image width={60} height={50} src={`${school.branding.logo}`} alt="Mount Olives School Logo" />
           <span className="font-semibold">Mount Olives School</span>
         </div>
         <Button
@@ -152,12 +155,12 @@ export default function DashboardNav({ user }: DashboardNavProps) {
       >
         <div>
           <div className="hidden md:flex items-center h-16 px-3 text-primary font-bold text-lg">
-            <Image width={60} height={50} src="/logo.webp" alt="Mount Olives School Logo" />
+            <Image width={60} height={50} src={`${school.branding.logo}`} alt="Mount Olives School Logo" />
             <span className="font-semibold">Mount Olive's School</span>
           </div>
 
           <div className="md:hidden flex items-center h-16 px-3 text-primary font-bold">
-            <Image width={40} height={30} src="/logo.webp" alt="Mount Olives School Logo" />
+            <Image width={40} height={30} src={`${school.branding.logo}`} alt="Mount Olives School Logo" />
             <span className="font-semibold">Mount Olives School</span>
           </div>
 

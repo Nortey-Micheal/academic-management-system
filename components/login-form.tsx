@@ -12,12 +12,14 @@ import { Separator } from "./ui/separator"
 import Link from "next/link"
 import { useLogin } from "@/hooks/useLogin"
 import { Eye, EyeClosed } from "lucide-react"
+import { getSchoolConfig } from "@/config"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const { login, loading } = useLogin()
   const [isVisble,setIsVisible] = useState<boolean>(false)
+  const school = getSchoolConfig()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,11 +32,11 @@ export function LoginForm() {
       <CardHeader className="space-y-1">
         <div className="flex items-center justify-center">
           <div className="flex items-center justify-center rounded-xl ">
-            <Image alt="school logo" width={200} height={200} src={'/logo.webp'}/>
+            <Image alt={`${school.name}'s logo`} width={200} height={200} src={school.branding.logo}/>
           </div>
         </div>
         <CardTitle className="text-2xl text-center">Welcome Back</CardTitle>
-        <CardDescription className="text-center">Sign in to access the Mount Olive's Academic Management System</CardDescription>
+        <CardDescription className="text-center">Sign in to access the {school.name}'s Academic Management System</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">

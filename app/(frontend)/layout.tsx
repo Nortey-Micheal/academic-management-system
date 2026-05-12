@@ -4,21 +4,23 @@ import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import ReduxProvider from "@/lib/store/provider"
 import { Toaster } from "sonner"
+import { getSchoolConfig } from "@/config"
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
+const school = getSchoolConfig()
 
 export const metadata: Metadata = {
-  title: "MOS Management System",
+  title: `${school.name} Management System`,
   description: "Comprehensive school management platform for student records, attendance, assessments, and reporting",
   icons: {
     icon: [
       {
-        url: "/logo-dark.webp",
+        url: `${school.branding.logo}`,
         media: "(prefers-color-scheme: light)",
       },
       {
-        url: "/logo-dark.webp",
+        url: `${school.branding.logo}`,
         media: "(prefers-color-scheme: dark)",
       },
     ],

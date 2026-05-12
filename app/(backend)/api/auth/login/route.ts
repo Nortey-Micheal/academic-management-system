@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
+import { getSchoolConfig } from "@/config";
 
-const JWT_SECRET = process.env.JWT_TOKEN as string;
+const school = getSchoolConfig()
 
 export async function POST(req: Request) {
   try {
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
         email: user.email,
         role: user.role,
       },
-      JWT_SECRET,
+      school.secrets.JWT_TOKEN,
       { expiresIn: "7d" }
     );
 

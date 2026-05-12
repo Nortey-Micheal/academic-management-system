@@ -1,5 +1,25 @@
 import { Level, Prisma, Section, Subject } from "./generated/prisma/client"
 
+export interface SchoolConfig {
+  schoolId: string;
+
+  name: string;
+
+  branding: {
+    logo: string;
+    primaryColor: string;
+    secondaryColor: string;
+  };
+
+  database: {
+    url: string;
+    directUrl: string
+  }
+  secrets: {
+    JWT_TOKEN: string
+  }
+}
+
 export type FullUserType = Prisma.UserGetPayload<{
   include: {
     studentProfile: true,

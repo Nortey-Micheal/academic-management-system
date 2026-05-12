@@ -1,5 +1,8 @@
 import { PrismaClient } from "./generated/prisma/client";
+import { getSchoolConfig } from "@/config/index";
 import { withAccelerate } from "@prisma/extension-accelerate";
+
+const school = getSchoolConfig();
 
 const globalForPrisma = global as unknown as {
   prisma: ReturnType<typeof createPrismaClient> | undefined;
@@ -7,7 +10,7 @@ const globalForPrisma = global as unknown as {
 
 function createPrismaClient() {
   return new PrismaClient({
-    accelerateUrl: process.env.ACCELERATE_URL!,
+    accelerateUrl: school.database.url!,
   }).$extends(withAccelerate());
 }
 
