@@ -27,6 +27,7 @@ import { Class } from "@/lib/generated/prisma/client"
 import { useSelector } from "react-redux"
 import { StoreState } from "@/lib/store"
 import { toast } from "sonner"
+import EditStudentDialog from "./edit-student"
 
 export function StudentsTable() {
   const [students, setStudents] = useState<StudentWithRelations[]>([])
@@ -35,6 +36,8 @@ export function StudentsTable() {
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
   const user = useSelector((state:StoreState) => state.user)
+  const [open,setOpen] = useState<boolean>(false)
+  const [student,setStudent] = useState<StudentWithRelations | null>(null)
 
   useEffect(() => {
     if (!user?.role || user.role === "STUDENT") return
@@ -45,6 +48,11 @@ export function StudentsTable() {
       fetchDataForNoneTeachers()
     }
   }, [user])
+
+  const handleEdit = (student:StudentWithRelations) => {
+    setOpen(true)
+    setStudent(student)
+  }
 
   const fetchDataForNoneTeachers = async () => {
     setLoading(true)
@@ -275,7 +283,10 @@ export function StudentsTable() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="icon">
+                        <Button 
+                          onClick={() => handleEdit(student)} 
+                          variant="ghost" size="icon"
+                        >
                           <Pencil className="w-4 h-4" />
                         </Button>
                         <Button
@@ -293,6 +304,7 @@ export function StudentsTable() {
             </Table>
           </div>
         )}
+        <EditStudentDialog onOpenChange={setOpen} open={open} student={student!} classes={classes}/>
       </CardContent>
     </Card>
   )
