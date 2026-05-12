@@ -36,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-vend antialiased min-h-screen bg-background`}>
-        <Toaster position="top-center" richColors/>
+        <Toaster duration={1000} position="top-center" richColors/>
         <ReduxProvider>
           <div className="">{children}</div>
         </ReduxProvider>
