@@ -54,7 +54,7 @@ export default function HeaderSelectors({
             const subject = subjects.find((s) => s.id === e.target.value);
             if (subject) onSubjectChange(subject);
           }}
-          className="px-2 py-1 border border-foreground text-xs font-medium text-foreground bg-background focus:outline-none focus:ring-1 focus:ring-accent"
+          className="w-full px-2 py-1 border border-foreground text-xs font-medium text-foreground bg-background focus:outline-none focus:ring-1 focus:ring-accent"
         >
           {subjects?.map((subject) => (
             <option key={subject?.id!} value={subject?.id!}>
