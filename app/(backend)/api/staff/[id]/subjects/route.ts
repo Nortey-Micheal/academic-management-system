@@ -157,3 +157,103 @@ export async function POST(
     )
   }
 }
+
+// app/api/staff/[id]/subjects/route.ts
+
+export async function DELETE(
+  request: NextRequest,
+  {
+    params,
+  }: {
+    params: Promise<{ id: string }>
+  }
+) {
+  try {
+    const { id } = await params
+
+    const body = await request.json()
+
+    const { assignmentId } = body
+
+    if (!assignmentId) {
+      return NextResponse.json(
+        {
+          error: "Assignment ID is required",
+        },
+        {
+          status: 400,
+        }
+      )
+    }
+
+    /**
+     * FIND TEACHER USING USER ID
+     */
+    const teacher = await prisma.teacher.findUnique({
+      where: {
+        userId: id,
+      },
+    })
+
+    if (!teacher) {
+      return NextResponse.json(
+        {
+          error: "Teacher not found",
+        },
+        {
+          status: 404,
+        }
+      )
+    }
+
+    /**
+     * VERIFY ASSIGNMENT BELONGS TO TEACHER
+     */
+    const assignment =
+      await prisma.teacherClassSubject.findFirst({
+        where: {
+          id: assignmentId,
+          teacherId: teacher.id,
+        },
+      })
+
+    if (!assignment) {
+      return NextResponse.json(
+        {
+          error: "Assignment not found",
+        },
+        {
+          status: 404,
+        }
+      )
+    }
+
+    /**
+     * DELETE ASSIGNMENT
+     */
+    await prisma.teacherClassSubject.delete({
+      where: {
+        id: assignmentId,
+      },
+    })
+
+    return NextResponse.json({
+      success: true,
+      message:
+        "Subject assignment removed successfully",
+    })
+
+  } catch (error) {
+    console.error(error)
+
+    return NextResponse.json(
+      {
+        error:
+          "Failed to remove subject assignment",
+      },
+      {
+        status: 500,
+      }
+    )
+  }
+}
