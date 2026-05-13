@@ -12,6 +12,7 @@ import {
   X,
   Menu,
   User2,
+  SettingsIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useLogout } from "@/hooks/useLogout"
@@ -78,6 +79,12 @@ const navItems = [
     href: "/staff",
     label: "Staff",
     icon: User2,
+    roles: ["ADMIN", "HEADTEACHER", "ACADEMIC_OFFICER"]
+  },
+  {
+    href: "/settings",
+    label: "Setting",
+    icon: SettingsIcon,
     roles: ["ADMIN", "HEADTEACHER", "ACADEMIC_OFFICER"]
   }
 ]
