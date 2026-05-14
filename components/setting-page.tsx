@@ -74,7 +74,7 @@ export default function SystemSettingsPage() {
         <SchoolProfileForm />
 
         {/* Promotion Settings Section */}
-        {/* <PromotionSettingsForm /> */}
+        <PromotionSettingsForm />
       </div>
     </div>
   )
