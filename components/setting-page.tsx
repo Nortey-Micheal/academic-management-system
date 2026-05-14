@@ -63,21 +63,19 @@ export default function SystemSettingsPage() {
       </div>
 
       {/* Main Content */}
-      <main className="">
-        <div className="space-y-8">
-          {/* Academic Settings Section */}
-          <AcademicSettingsForm />
+      <div className="space-y-8 overflow-scroll">
+        {/* Academic Settings Section */}
+        <AcademicSettingsForm />
 
-          {/* Holiday Management Section */}
-          <HolidayManagement />
+        {/* Holiday Management Section */}
+        <HolidayManagement />
 
-          {/* School Profile Section */}
-          <SchoolProfileForm />
+        {/* School Profile Section */}
+        <SchoolProfileForm />
 
-          {/* Promotion Settings Section */}
-          <PromotionSettingsForm />
-        </div>
-      </main>
+        {/* Promotion Settings Section */}
+        {/* <PromotionSettingsForm /> */}
+      </div>
     </div>
   )
 }
