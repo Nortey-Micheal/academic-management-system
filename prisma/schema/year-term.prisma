@@ -4,15 +4,18 @@ model AcademicYear {
   isActive Boolean @default(false)
 
   terms     Term[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  holiday   Holiday[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Term {
-  id             String  @id @default(uuid())
+  id             String   @id @default(uuid())
   termNumber     Int
   academicYearId String
-  isActive       Boolean @default(false)
+  isActive       Boolean  @default(false)
+  termStartDate  DateTime @default(now())
+  termEndDate    DateTime @default(now())
 
   academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
   createdAt    DateTime     @default(now())

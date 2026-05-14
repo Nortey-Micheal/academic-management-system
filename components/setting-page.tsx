@@ -44,10 +44,10 @@ export default function SystemSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="">
       {/* Sticky Header */}
-      <div className="sticky top-0 z-50 bg-card border-b border-border/50 shadow-sm">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="bg-card border-b border-border/50 mb-5 shadow-sm">
+        <div className="px-6 py-4 flex flex-col gap-3 justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">System Settings</h1>
             <p className="text-sm text-muted-foreground mt-1">Manage your school's core settings and configurations</p>
@@ -63,7 +63,7 @@ export default function SystemSettingsPage() {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="">
         <div className="space-y-8">
           {/* Academic Settings Section */}
           <AcademicSettingsForm />
