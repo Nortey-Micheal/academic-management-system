@@ -31,13 +31,16 @@ export async function GET() {
         (term) => term.isActive
       ) || null
 
+    console.log(academicYears)
+
     return NextResponse.json({
       success: true,
 
       academicYears: academicYears.map((year) => ({
         id: year.id,
-        name: year.year,
-        isCurrent: year.isActive,
+        year: year.year,
+        isActive: year.isActive,
+        terms: [...year.terms]
       })),
 
       terms:
@@ -51,7 +54,7 @@ export async function GET() {
               : 'Third Term',
 
           termNumber: term.termNumber,
-          isCurrent: term.isActive,
+          isActive: term.isActive,
           startDate: term.termStartDate,
           endDate: term.termEndDate,
         })) || [],

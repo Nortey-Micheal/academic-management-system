@@ -4,7 +4,7 @@ model AcademicYear {
   isActive Boolean @default(false)
 
   terms     Term[]
-  holiday   Holiday[]
+  holidays  Holiday[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -17,7 +17,7 @@ model Term {
   termStartDate  DateTime @default(now())
   termEndDate    DateTime @default(now())
 
-  academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
