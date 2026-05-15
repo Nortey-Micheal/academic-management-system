@@ -17,7 +17,7 @@ export default function LoginPage() {
   }, [user.id])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-muted/20 to-background p-4">
+    <div className="min-h-screen flex items-center justify-center mb-0 pb-25 bg-linear-to-br from-background via-muted/20 to-background p-4">
       <LoginForm />
     </div>
   )

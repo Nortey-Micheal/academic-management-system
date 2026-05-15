@@ -22,50 +22,52 @@ export default async function TimetablePage() {
         <p className="text-muted-foreground mt-1">Create and manage class schedules</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Timetable Builder</CardTitle>
-          <CardDescription>Example timetable for local development</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full table-auto border-collapse">
-              <thead>
-                <tr>
-                  <th className="p-3 text-left">Time</th>
-                  {days.map((d) => (
-                    <th key={d} className="p-3 text-left">
-                      {d}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {timeSlots.map((slot) => (
-                  <tr key={slot} className="border-t">
-                    <td className="p-3 font-mono">{slot}</td>
-                    {days.map((d) => {
-                      const cell = (sampleSchedule as any).Grade1?.[d]?.find((s: any) => s.time === slot)
-                      return (
-                        <td key={d + slot} className="p-3 align-top">
-                          {cell ? (
-                            <div>
-                              <div className="font-semibold">{cell.subject}</div>
-                              <div className="text-sm text-muted-foreground">{cell.teacher} — {cell.room}</div>
-                            </div>
-                          ) : (
-                            <div className="text-sm text-muted-foreground">—</div>
-                          )}
-                        </td>
-                      )
-                    })}
+      <div className="mb-0 pb-25">
+        <Card>
+          <CardHeader>
+            <CardTitle>Timetable Builder</CardTitle>
+            <CardDescription>Example timetable for local development</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full table-auto border-collapse">
+                <thead>
+                  <tr>
+                    <th className="p-3 text-left">Time</th>
+                    {days.map((d) => (
+                      <th key={d} className="p-3 text-left">
+                        {d}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+                </thead>
+                <tbody>
+                  {timeSlots.map((slot) => (
+                    <tr key={slot} className="border-t">
+                      <td className="p-3 font-mono">{slot}</td>
+                      {days.map((d) => {
+                        const cell = (sampleSchedule as any).Grade1?.[d]?.find((s: any) => s.time === slot)
+                        return (
+                          <td key={d + slot} className="p-3 align-top">
+                            {cell ? (
+                              <div>
+                                <div className="font-semibold">{cell.subject}</div>
+                                <div className="text-sm text-muted-foreground">{cell.teacher} — {cell.room}</div>
+                              </div>
+                            ) : (
+                              <div className="text-sm text-muted-foreground">—</div>
+                            )}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </AppLayout>
   )
 }
