@@ -34,11 +34,11 @@ export default function RootLayout({
 }>) {
 
   return (
-    <html lang="en">
-      <body className={`font-vend antialiased overflow-auto h-screen bg-background`}>
+    <html lang="en" className="overflow-hidden min-h-screen">
+      <body className={`font-vend antialiased bg-background`}>
         <Toaster duration={1000} position="top-center" richColors/>
         <ReduxProvider>
-          <div className="">{children}</div>
+          <div className="h-screen overflow-scroll">{children}</div>
         </ReduxProvider>
       </body>
     </html>
