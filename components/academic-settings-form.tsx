@@ -338,7 +338,7 @@ export function AcademicSettingsForm() {
               </p>
             </div>
 
-            <div className="flex w-full gap-2 md:w-auto">
+            <div className="flex flex-col lg:flex-row w-full gap-2 md:w-auto">
               <AcademicYearInput value={newAcademicYear} onChange={setNewAcademicYear}/>
 
               <Button
