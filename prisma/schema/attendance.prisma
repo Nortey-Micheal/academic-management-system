@@ -1,16 +1,27 @@
 model Attendance {
-  id        String           @id @default(uuid())
+  id String @id @default(uuid())
+
   studentId String
   classId   String
-  date      DateTime
-  status    AttendanceStatus
-  notes     String?
-  markedBy  String
-  createdAt DateTime         @default(now())
 
+  academicYearId String
+  termId         String
+
+  date   DateTime
+  status AttendanceStatus
+  notes  String?
+
+  markedBy  String
+  createdAt DateTime @default(now())
+
+  // Relations
   student Student @relation(fields: [studentId], references: [id])
   class   Class   @relation(fields: [classId], references: [id])
-  marker  User    @relation(fields: [markedBy], references: [id])
+
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
+  term         Term         @relation(fields: [termId], references: [id])
+
+  marker User @relation(fields: [markedBy], references: [id])
 
   @@unique([studentId, date])
 }

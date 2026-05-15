@@ -25,7 +25,7 @@ const postAttendanceSchema = z.object({
 })
 
 /* ---------------------------------------------------
-GET: Get attendance for class teacher's class
+GET
 --------------------------------------------------- */
 export async function GET(request: NextRequest) {
   try {
@@ -46,14 +46,35 @@ export async function GET(request: NextRequest) {
     const nextDay = new Date(attendanceDate)
     nextDay.setDate(nextDay.getDate() + 1)
 
-    /* ---------------------------------------------
-    Find class where this teacher is class teacher
-    --------------------------------------------- */
+    // ✅ GET ACTIVE ACADEMIC CONTEXT
+    const currentAcademicYear = await prisma.academicYear.findFirst({
+      where: { isActive: true },
+    })
 
-    const teacherClass = await prisma.class.findFirst({
+    if (!currentAcademicYear) {
+      return NextResponse.json(
+        { error: "No active academic year" },
+        { status: 400 }
+      )
+    }
+
+    const currentTerm = await prisma.term.findFirst({
       where: {
-        classTeacherId: teacherId,
+        isActive: true,
+        academicYearId: currentAcademicYear.id,
       },
+    })
+
+    if (!currentTerm) {
+      return NextResponse.json(
+        { error: "No active term" },
+        { status: 400 }
+      )
+    }
+
+    // teacher class
+    const teacherClass = await prisma.class.findFirst({
+      where: { classTeacherId: teacherId },
       select: {
         id: true,
         level: true,
@@ -69,13 +90,12 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    /* ---------------------------------------------
-    Get attendance for that class
-    --------------------------------------------- */
-
+    // ✅ UPDATED QUERY (includes new schema fields)
     const attendance = await prisma.attendance.findMany({
       where: {
         classId: teacherClass.id,
+        academicYearId: currentAcademicYear.id,
+        termId: currentTerm.id,
         date: {
           gte: attendanceDate,
           lt: nextDay,
@@ -101,6 +121,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       class: teacherClass,
+      academicYear: currentAcademicYear,
+      term: currentTerm,
       attendance,
     })
   } catch (error: any) {
@@ -110,19 +132,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.errors }, { status: 400 })
     }
 
-    return NextResponse.json({ error: "Failed to fetch attendance" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to fetch attendance" },
+      { status: 500 }
+    )
   }
 }
 
 /* ---------------------------------------------------
-POST: Save attendance for teacher's class
+POST
 --------------------------------------------------- */
-
 export async function POST(request: NextRequest) {
   try {
-    /* ---------------------------------------------
-    GET USER ID FROM HEADER
-    --------------------------------------------- */
     const userId = request.headers.get("x-teacher-id") || ""
 
     if (!userId) {
@@ -132,28 +153,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    /* ---------------------------------------------
-    PARSE BODY
-    --------------------------------------------- */
     const body = await request.json()
     const parsedData = postAttendanceSchema.parse(body)
 
     const { date, records } = parsedData
 
-    /* ---------------------------------------------
-    NORMALIZE DATE (START OF DAY)
-    --------------------------------------------- */
     const attendanceDate = new Date(date)
     attendanceDate.setHours(0, 0, 0, 0)
 
     const nextDay = new Date(attendanceDate)
     nextDay.setDate(nextDay.getDate() + 1)
 
-    /* ---------------------------------------------
-    GET TEACHER FROM USER ID
-    --------------------------------------------- */
+    // teacher
     const teacher = await prisma.teacher.findUnique({
-      where: { userId }
+      where: { userId },
     })
 
     if (!teacher) {
@@ -163,16 +176,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    /* ---------------------------------------------
-    GET CLASS WHERE TEACHER IS CLASS TEACHER
-    --------------------------------------------- */
     const teacherClass = await prisma.class.findFirst({
-      where: {
-        classTeacherId: teacher.id
-      },
-      select: {
-        id: true
-      }
+      where: { classTeacherId: teacher.id },
+      select: { id: true },
     })
 
     if (!teacherClass) {
@@ -182,59 +188,64 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // ✅ ACTIVE ACADEMIC CONTEXT
+    const currentAcademicYear = await prisma.academicYear.findFirst({
+      where: { isActive: true },
+    })
+
+    const currentTerm = await prisma.term.findFirst({
+      where: {
+        isActive: true,
+        academicYearId: currentAcademicYear?.id,
+      },
+    })
+
+    if (!currentAcademicYear || !currentTerm) {
+      return NextResponse.json(
+        { error: "Academic year or term not set" },
+        { status: 400 }
+      )
+    }
+
     const classId = teacherClass.id
 
-    /* ---------------------------------------------
-    DELETE EXISTING ATTENDANCE FOR THAT DAY
-    --------------------------------------------- */
+    // delete old records
     await prisma.attendance.deleteMany({
       where: {
         classId,
+        academicYearId: currentAcademicYear.id,
+        termId: currentTerm.id,
         date: {
           gte: attendanceDate,
-          lt: nextDay
-        }
-      }
+          lt: nextDay,
+        },
+      },
     })
 
-    /* ---------------------------------------------
-    PREPARE NEW RECORDS
-    --------------------------------------------- */
+    // insert new records
     const attendanceRecords = records.map((r) => ({
       studentId: r.studentId,
       classId,
       date: attendanceDate,
       status: r.status,
       notes: r.notes || "",
-      markedBy: userId // ✅ use Teacher.id, NOT userId
+      markedBy: userId,
+
+      // ✅ REQUIRED FIELDS FIX
+      academicYearId: currentAcademicYear.id,
+      termId: currentTerm.id,
     }))
 
-    /* ---------------------------------------------
-    INSERT RECORDS
-    --------------------------------------------- */
-    if (attendanceRecords.length > 0) {
-      await prisma.attendance.createMany({
-        data: attendanceRecords
-      })
-    }
+    await prisma.attendance.createMany({
+      data: attendanceRecords,
+    })
 
-    /* ---------------------------------------------
-    SUCCESS RESPONSE
-    --------------------------------------------- */
     return NextResponse.json({ success: true })
-
   } catch (error: any) {
-
     console.error("Error saving attendance:", error)
 
-    /* ---------------------------------------------
-    VALIDATION ERROR (ZOD)
-    --------------------------------------------- */
     if (error.name === "ZodError") {
-      return NextResponse.json(
-        { error: error.errors },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: error.errors }, { status: 400 })
     }
 
     return NextResponse.json(

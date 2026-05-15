@@ -3,23 +3,30 @@ model AcademicYear {
   year     String  @unique
   isActive Boolean @default(false)
 
-  terms     Term[]
-  holidays  Holiday[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  terms      Term[]
+  holiday    Holiday[]
+  attendance Attendance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Term {
-  id             String   @id @default(uuid())
+  id             String @id @default(uuid())
   termNumber     Int
   academicYearId String
-  isActive       Boolean  @default(false)
-  termStartDate  DateTime @default(now())
-  termEndDate    DateTime @default(now())
 
-  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  isActive Boolean @default(false)
+
+  termStartDate DateTime @default(now())
+  termEndDate   DateTime @default(now())
+
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
+
+  attendance Attendance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([termNumber, academicYearId])
 }
