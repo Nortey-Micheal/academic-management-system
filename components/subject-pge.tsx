@@ -48,7 +48,7 @@ export default function SubjectsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background mb-0 pb-25">
       <div className="flex flex-col gap-6 p-6 max-w-7xl mx-auto">
         <SubjectsHeader onAddSubject={handleAddSubject} />
         <SubjectsStats />

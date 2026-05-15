@@ -44,7 +44,7 @@ export default function SystemSettingsPage() {
   }
 
   return (
-    <div className="">
+    <div className="mb-0 pb-25">
       {/* Sticky Header */}
       <div className="bg-card border-b border-border/50 mb-5 shadow-sm">
         <div className="px-6 py-4 flex flex-col gap-3 justify-between">
@@ -63,7 +63,7 @@ export default function SystemSettingsPage() {
       </div>
 
       {/* Main Content */}
-      <div className="space-y-8">
+      <div className="space-y-8 ">
         {/* Academic Settings Section */}
         <AcademicSettingsForm />
 

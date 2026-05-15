@@ -35,7 +35,7 @@ export function SubjectsToolbar({ filters, onFilterChange, onAddSubject }: Subje
         />
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Select value={filters.level} onValueChange={(value) => onFilterChange({ level: value })}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="All Levels" />

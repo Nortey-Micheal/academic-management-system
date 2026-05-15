@@ -161,151 +161,149 @@ export function StudentsTable() {
   }
 
   return (
-    <Card>
-      <CardHeader className="space-y-4">
-        <div className="flex items-center justify-between">
-          <CardTitle>
-            {selectedClass
-              ? `Students - ${formatClassName(selectedClass)}`
-              : "Students"}
-          </CardTitle>
-          {user.role !== 'TEACHER' && <AddStudentDialog onStudentAdded={fetchDataForNoneTeachers} />}
-        </div>
-
-        {/* Class Selector */}
-        <Select
-          value={selectedClassId}
-          onValueChange={(value) => setSelectedClassId(value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select a class" />
-          </SelectTrigger>
-          <SelectContent>
-            {classes?.map((cls) => (
-              <SelectItem key={cls.id} value={cls.id}>
-                {formatClassName(cls)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name or student ID..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-
-        {/* Class Info */}
-        {selectedClass && (
-          <div className="flex gap-4 text-sm text-muted-foreground">
-            <div>
-              Capacity:{" "}
-              <span className="font-medium text-foreground">
-                {selectedClass.capacity}
-              </span>
+    <div className="mb-0 pb-25">
+      <Card>
+        <CardHeader className="space-y-4">
+          <div className="flex items-center justify-between">
+            <CardTitle>
+              {selectedClass
+                ? `Students - ${formatClassName(selectedClass)}`
+                : "Students"}
+            </CardTitle>
+            {user.role !== 'TEACHER' && <AddStudentDialog onStudentAdded={fetchDataForNoneTeachers} />}
+          </div>
+          {/* Class Selector */}
+          <Select
+            value={selectedClassId}
+            onValueChange={(value) => setSelectedClassId(value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a class" />
+            </SelectTrigger>
+            <SelectContent>
+              {classes?.map((cls) => (
+                <SelectItem key={cls.id} value={cls.id}>
+                  {formatClassName(cls)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or student ID..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          {/* Class Info */}
+          {selectedClass && (
+            <div className="flex gap-4 text-sm text-muted-foreground">
+              <div>
+                Capacity:{" "}
+                <span className="font-medium text-foreground">
+                  {selectedClass.capacity}
+                </span>
+              </div>
+              <div>
+                Enrolled:{" "}
+                <span className="font-medium text-foreground">
+                  {selectedClass.currentEnrollment}
+                </span>
+              </div>
             </div>
-            <div>
-              Enrolled:{" "}
-              <span className="font-medium text-foreground">
-                {selectedClass.currentEnrollment}
-              </span>
+          )}
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Loading students...
             </div>
-          </div>
-        )}
-      </CardHeader>
-
-      <CardContent>
-        {loading ? (
-          <div className="text-center py-8 text-muted-foreground">
-            Loading students...
-          </div>
-        ) : !selectedClass ? (
-          <div className="text-center py-8 text-muted-foreground">
-            Please select a class.
-          </div>
-        ) : filteredStudents.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No students found in this class.
-          </div>
-        ) : (
-          <div className="rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Guardian</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStudents.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell className="font-mono text-sm">
-                      {student.studentId}
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium">
-                        {student.user?.firstName}{" "}
-                        {student.user?.lastName}
-                      </div>
-                      <div className="text-sm text-muted-foreground capitalize">
-                        {student.gender}
-                      </div>
-                    </TableCell>
-                    <TableCell>{student.guardianName}</TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {student.guardianPhone}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {student.guardianEmail}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          student.user?.status === "active"
-                            ? "default"
-                            : "secondary"
-                        }
-                        className="capitalize"
-                      >
-                        {student.user?.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button 
-                          onClick={() => handleEdit(student)} 
-                          variant="ghost" size="icon"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(student.id!)}
-                        >
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
+          ) : !selectedClass ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Please select a class.
+            </div>
+          ) : filteredStudents.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No students found in this class.
+            </div>
+          ) : (
+            <div className="rounded-lg border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Student ID</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Guardian</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-        <EditStudentDialog onOpenChange={setOpen} open={open} student={student!} classes={classes}/>
-      </CardContent>
-    </Card>
+                </TableHeader>
+                <TableBody>
+                  {filteredStudents.map((student) => (
+                    <TableRow key={student.id}>
+                      <TableCell className="font-mono text-sm">
+                        {student.studentId}
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">
+                          {student.user?.firstName}{" "}
+                          {student.user?.lastName}
+                        </div>
+                        <div className="text-sm text-muted-foreground capitalize">
+                          {student.gender}
+                        </div>
+                      </TableCell>
+                      <TableCell>{student.guardianName}</TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {student.guardianPhone}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {student.guardianEmail}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            student.user?.status === "active"
+                              ? "default"
+                              : "secondary"
+                          }
+                          className="capitalize"
+                        >
+                          {student.user?.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            onClick={() => handleEdit(student)}
+                            variant="ghost" size="icon"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(student.id!)}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+          <EditStudentDialog onOpenChange={setOpen} open={open} student={student!} classes={classes}/>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

@@ -310,7 +310,7 @@ export function AttendanceMarker() {
 
   return (
 
-    <div className="space-y-6">
+    <div className="space-y-6 mb-0 pb-25">
 
       <Card>
 

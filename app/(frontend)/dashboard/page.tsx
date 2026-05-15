@@ -114,125 +114,123 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Welcome back, {user.firstName}. Here&apos;s what&apos;s happening with your school.
-        </p>
-      </div>
-
-      <div className="grid gap-6 grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Link key={stat.title} href={stat.href}>
-            <Card className="transition-all hover:shadow-lg cursor-pointer">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
-                <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                  <stat.icon className={`w-4 h-4 ${stat.color}`} />
+      <div className="mb-0 pb-25">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground mt-1">
+            Welcome back, {user.firstName}. Here&apos;s what&apos;s happening with your school.
+          </p>
+        </div>
+        <div className="grid gap-6 grid-cols-2 lg:grid-cols-4 mb-5">
+          {stats.map((stat) => (
+            <Link key={stat.title} href={stat.href}>
+              <Card className="transition-all hover:shadow-lg cursor-pointer">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
+                  <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+                    <stat.icon className={`w-4 h-4 ${stat.color}`} />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">{stat.value}</div>
+                  <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 mb-5">
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Common tasks and shortcuts</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3">
+                {quickActions.map((action) => (
+                  <Link key={action.title} href={action.href}>
+                    <Button variant="outline" className="w-full justify-start h-auto py-4 bg-transparent">
+                      <action.icon className="w-5 h-5 mr-3" />
+                      <div className="text-left">
+                        <div className="font-semibold">{action.title}</div>
+                        <div className="text-sm text-muted-foreground">{action.description}</div>
+                      </div>
+                    </Button>
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
+              <CardDescription>Latest updates and changes</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3 p-3 rounded-lg border">
+                  <div className="p-2 rounded-lg bg-blue-100">
+                    <Users className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">New students enrolled</p>
+                    <p className="text-xs text-muted-foreground">{totalStudents} students in the system</p>
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
+                <div className="flex items-start gap-3 p-3 rounded-lg border">
+                  <div className="p-2 rounded-lg bg-green-100">
+                    <UserCheck className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Weekly attendance recorded</p>
+                    <p className="text-xs text-muted-foreground">Average rate: {attendanceRate}%</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg border">
+                  <div className="p-2 rounded-lg bg-purple-100">
+                    <FileText className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Assessments created</p>
+                    <p className="text-xs text-muted-foreground">{totalAssessments} active assessments</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common tasks and shortcuts</CardDescription>
+            <CardTitle>System Status</CardTitle>
+            <CardDescription>All systems operational</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3">
-              {quickActions.map((action) => (
-                <Link key={action.title} href={action.href}>
-                  <Button variant="outline" className="w-full justify-start h-auto py-4 bg-transparent">
-                    <action.icon className="w-5 h-5 mr-3" />
-                    <div className="text-left">
-                      <div className="font-semibold">{action.title}</div>
-                      <div className="text-sm text-muted-foreground">{action.description}</div>
-                    </div>
-                  </Button>
-                </Link>
-              ))}
+            <div className="grid gap-3 md:grid-cols-3">
+              <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <div>
+                  <p className="text-sm font-medium">Student Management</p>
+                  <p className="text-xs text-muted-foreground">Operational</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <div>
+                  <p className="text-sm font-medium">Attendance Tracking</p>
+                  <p className="text-xs text-muted-foreground">Operational</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <div>
+                  <p className="text-sm font-medium">Grading System</p>
+                  <p className="text-xs text-muted-foreground">Operational</p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest updates and changes</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3 p-3 rounded-lg border">
-                <div className="p-2 rounded-lg bg-blue-100">
-                  <Users className="w-4 h-4 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">New students enrolled</p>
-                  <p className="text-xs text-muted-foreground">{totalStudents} students in the system</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg border">
-                <div className="p-2 rounded-lg bg-green-100">
-                  <UserCheck className="w-4 h-4 text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Weekly attendance recorded</p>
-                  <p className="text-xs text-muted-foreground">Average rate: {attendanceRate}%</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg border">
-                <div className="p-2 rounded-lg bg-purple-100">
-                  <FileText className="w-4 h-4 text-purple-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Assessments created</p>
-                  <p className="text-xs text-muted-foreground">{totalAssessments} active assessments</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>System Status</CardTitle>
-          <CardDescription>All systems operational</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 md:grid-cols-3">
-            <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              <div>
-                <p className="text-sm font-medium">Student Management</p>
-                <p className="text-xs text-muted-foreground">Operational</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              <div>
-                <p className="text-sm font-medium">Attendance Tracking</p>
-                <p className="text-xs text-muted-foreground">Operational</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              <div>
-                <p className="text-sm font-medium">Grading System</p>
-                <p className="text-xs text-muted-foreground">Operational</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </AppLayout>
   )
 }

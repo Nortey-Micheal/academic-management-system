@@ -70,7 +70,7 @@ const navItems = [
   },
   {
     href: "/reports",
-    label: "Reports",
+    label: "Report Cards",
     icon: FileText,
     roles: ["ADMIN", "HEADTEACHER", "ACADEMIC_OFFICER"],
   },
@@ -216,7 +216,7 @@ export default function DashboardNav({ user }: DashboardNavProps) {
           </nav>
         </div>
 
-        <div className="p-4 w-full">
+        <div className="p-4 pt-0 w-full">
           <Button
             onClick={handleLogout}
             className="flex items-center w-full border-t-2 text-sm hover:text-destructive transition-colors"
