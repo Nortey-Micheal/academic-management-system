@@ -63,7 +63,7 @@ export default function SystemSettingsPage() {
       </div>
 
       {/* Main Content */}
-      <div className="space-y-8 overflow-scroll">
+      <div className="space-y-8">
         {/* Academic Settings Section */}
         <AcademicSettingsForm />
 

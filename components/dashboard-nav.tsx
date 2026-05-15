@@ -13,6 +13,7 @@ import {
   Menu,
   User2,
   SettingsIcon,
+  BookOpen,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useLogout } from "@/hooks/useLogout"
@@ -33,18 +34,28 @@ const navItems = [
     icon: BarChart3,
     roles: ["ADMIN", "HEADTEACHER", "ACADEMIC_OFFICER", "TEACHER"],
   },
+
   {
     href: "/students",
     label: "Students",
     icon: Users,
     roles: ["ADMIN", "HEADTEACHER", "ACADEMIC_OFFICER", "TEACHER"],
   },
+
   {
     href: "/classes",
     label: "Classes",
     icon: Users,
     roles: ["ADMIN", "HEADTEACHER"],
   },
+
+  {
+    href: "/subjects",
+    label: "Subjects",
+    icon: BookOpen,
+    roles: ["ADMIN", "HEADTEACHER", "ACADEMIC_OFFICER"],
+  },
+
   {
     href: "/attendance",
     label: "Attendance",
