@@ -42,13 +42,15 @@ import {
   Loader2,
   Plus,
 } from 'lucide-react'
+import { formatDate } from '@/lib/utils'
+import { AcademicYearInput } from './academic-year-input'
 
 interface Term {
   id: string
   termNumber: number
   isActive: boolean
-  startDate: string
-  endDate: string
+  termStartDate: string
+  termEndDate: string
 }
 
 interface AcademicYear {
@@ -337,16 +339,7 @@ export function AcademicSettingsForm() {
             </div>
 
             <div className="flex w-full gap-2 md:w-auto">
-              <Input
-                placeholder="2026/2027"
-                value={newAcademicYear}
-                onChange={(e) =>
-                  setNewAcademicYear(
-                    e.target.value
-                  )
-                }
-                className="md:w-[180px]"
-              />
+              <AcademicYearInput value={newAcademicYear} onChange={setNewAcademicYear}/>
 
               <Button
                 type="button"
@@ -408,13 +401,13 @@ export function AcademicSettingsForm() {
                         </p>
 
                         <p className="text-xs text-muted-foreground">
-                          {new Date(
-                            term.startDate
-                          ).toLocaleDateString()}{' '}
+                          {formatDate(new Date(
+                            term.termStartDate
+                          ))}{' '}
                           -{' '}
-                          {new Date(
-                            term.endDate
-                          ).toLocaleDateString()}
+                          {formatDate(new Date(
+                            term.termEndDate
+                          ))}
                         </p>
                       </div>
 
@@ -484,14 +477,14 @@ export function AcademicSettingsForm() {
                             form.setValue(
                               'termStartDate',
                               new Date(
-                                activeTerm.startDate
+                                activeTerm.termStartDate
                               )
                             )
 
                             form.setValue(
                               'termEndDate',
                               new Date(
-                                activeTerm.endDate
+                                activeTerm.termEndDate
                               )
                             )
                           }
@@ -551,14 +544,14 @@ export function AcademicSettingsForm() {
                             form.setValue(
                               'termStartDate',
                               new Date(
-                                term.startDate
+                                term.termStartDate
                               )
                             )
 
                             form.setValue(
                               'termEndDate',
                               new Date(
-                                term.endDate
+                                term.termEndDate
                               )
                             )
                           }

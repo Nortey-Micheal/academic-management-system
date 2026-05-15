@@ -5,7 +5,7 @@ import { SchoolConfig } from "@/lib/types";
 export const mountOlivesSchool:SchoolConfig = {
   schoolId: "mount-olives-school",
 
-  name: "mos ",
+  name: "Mount Olives School",
 
   database: {
     url: process.env.MOUNT_OLIVES_SCHOOL_DATABASE_URL!,
