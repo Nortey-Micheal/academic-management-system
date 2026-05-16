@@ -100,7 +100,9 @@ export async function POST(req: Request) {
 
     const result = await prisma.$transaction(async (tx) => {
 
-      // 🔥 1️⃣ Prevent duplicate class teacher in same year
+      // --------------------------------------------------
+      // 1. Prevent duplicate class teacher per year
+      // --------------------------------------------------
       if (classTeacherId) {
         const teacherAlreadyAssigned = await tx.class.findFirst({
           where: {
@@ -116,7 +118,9 @@ export async function POST(req: Request) {
         }
       }
 
-      // 🔥 2️⃣ Create Class
+      // --------------------------------------------------
+      // 2. Create Class
+      // --------------------------------------------------
       const newClass = await tx.class.create({
         data: {
           level,
@@ -128,7 +132,9 @@ export async function POST(req: Request) {
         },
       })
 
-      // 🔥 3️⃣ Fetch subjects for this level (include teacher)
+      // --------------------------------------------------
+      // 3. Fetch subjects for this level
+      // --------------------------------------------------
       const subjectsForLevel = await tx.subject.findMany({
         where: { level },
         select: {
@@ -137,48 +143,40 @@ export async function POST(req: Request) {
         },
       })
 
-      if (subjectsForLevel.length === 0) {
-        throw new Error(
-          "No subjects found for this level. Please create subjects first."
-        )
-      }
+      // --------------------------------------------------
+      // 4. Auto-link subjects (SAFE, NO FAILURE IF EMPTY)
+      // --------------------------------------------------
+      if (subjectsForLevel.length > 0) {
+        await tx.classSubject.createMany({
+          data: subjectsForLevel.map((subject) => ({
+            classId: newClass.id,
+            subjectId: subject.id,
+          })),
+          skipDuplicates: true,
+        })
 
-      // 🔥 4️⃣ Create ClassSubject records
-      const createdClassSubjects = await Promise.all(
-        subjectsForLevel.map((subject) =>
-          tx.classSubject.create({
-            data: {
-              classId: newClass.id,
-              subjectId: subject.id,
-            },
+        // --------------------------------------------------
+        // 5. Link subject teachers (ONLY valid ones)
+        // --------------------------------------------------
+        const teacherLinks = subjectsForLevel
+          .filter((s) => s.teacherId)
+          .map((subject) => ({
+            teacherId: subject.teacherId!,
+            classSubjectId: `${newClass.id}-${subject.id}`, // safer alternative if needed
+          }))
+
+        if (teacherLinks.length > 0) {
+          await tx.teacherClassSubject.createMany({
+            data: teacherLinks,
+            skipDuplicates: true,
           })
-        )
-      )
-
-      // 🔥 5️⃣ Create TeacherClassSubject links (if subject has teacher)
-      const teacherLinks = createdClassSubjects
-        .map((classSubject, index) => {
-          const teacherId = subjectsForLevel[index].teacherId
-          if (!teacherId) return null
-
-          return {
-            teacherId,
-            classSubjectId: classSubject.id,
-          }
-        })
-        .filter(Boolean) as { teacherId: string; classSubjectId: string }[]
-
-      if (teacherLinks.length > 0) {
-        await tx.teacherClassSubject.createMany({
-          data: teacherLinks,
-        })
+        }
       }
 
       return newClass
     })
 
     return NextResponse.json(result, { status: 201 })
-
   } catch (error: any) {
     console.error(error)
 
