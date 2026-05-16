@@ -115,7 +115,6 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const data = createSubjectSchema.parse(body)
-    const subjectCode = data.code
 
     // --------------------------------------------------
     // 1. Prevent duplicate subject in SAME level
@@ -137,12 +136,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // --------------------------------------------------
+    // 2. Ensure unique subjectCode
+    // --------------------------------------------------
+    let subjectCode = data.code
+
     let codeExists = await prisma.subject.findUnique({
       where: { subjectCode },
     })
 
     while (codeExists) {
-      subjectCode
+      const random = Math.floor(Math.random() * 900) + 100
+      subjectCode = `${subjectCode}-${random}`
 
       codeExists = await prisma.subject.findUnique({
         where: { subjectCode },
@@ -159,14 +164,42 @@ export async function POST(request: NextRequest) {
         description: data.description,
         level: data.level,
         teacherId: data.teacherId || null,
-        creditHours: data.creditHours || 1,
+        creditHours: data.creditHours ?? 1,
       },
     })
 
+    // --------------------------------------------------
+    // 4. Fetch all classes for this level
+    // --------------------------------------------------
+    const classes = await prisma.class.findMany({
+      where: {
+        level: data.level,
+      },
+      select: {
+        id: true,
+      },
+    })
+
+    // --------------------------------------------------
+    // 5. Auto-assign subject to all classes in level
+    // --------------------------------------------------
+    if (classes.length > 0) {
+      await prisma.classSubject.createMany({
+        data: classes.map((cls) => ({
+          classId: cls.id,
+          subjectId: subject.id,
+        })),
+        skipDuplicates: true,
+      })
+    }
+
+    // --------------------------------------------------
+    // 6. Return response
+    // --------------------------------------------------
     return NextResponse.json(
       {
         success: true,
-        message: "Subject created successfully",
+        message: "Subject created and assigned to all classes",
         data: subject,
       },
       { status: 201 }
@@ -183,6 +216,57 @@ export async function POST(request: NextRequest) {
           "Failed to create subject",
       },
       { status: 400 }
+    )
+  }
+}
+
+export async function DELETE(request: NextRequest, { params }: any) {
+  try {
+    const { id } = params
+
+    // --------------------------------------------------
+    // 1. Check subject exists
+    // --------------------------------------------------
+    const subject = await prisma.subject.findUnique({
+      where: { id },
+    })
+
+    if (!subject) {
+      return NextResponse.json(
+        { success: false, error: "Subject not found" },
+        { status: 404 }
+      )
+    }
+
+    // --------------------------------------------------
+    // 2. OPTIONAL: manual cleanup (extra safety)
+    // --------------------------------------------------
+    await prisma.classSubject.deleteMany({
+      where: {
+        subjectId: id,
+      },
+    })
+
+    // --------------------------------------------------
+    // 3. Delete subject
+    // --------------------------------------------------
+    await prisma.subject.delete({
+      where: { id },
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: "Subject deleted successfully",
+    })
+  } catch (error: any) {
+    console.error("Delete subject error:", error)
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: error?.message || "Failed to delete subject",
+      },
+      { status: 500 }
     )
   }
 }

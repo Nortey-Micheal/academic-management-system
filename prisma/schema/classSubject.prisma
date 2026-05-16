@@ -3,8 +3,8 @@ model ClassSubject {
   classId   String
   subjectId String
 
-  class              Class                 @relation(fields: [classId], references: [id])
-  subject            Subject               @relation(fields: [subjectId], references: [id])
+  class              Class                 @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subject            Subject               @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   teacherAssignments TeacherClassSubject[]
 
   @@unique([classId, subjectId])
