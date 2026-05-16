@@ -43,7 +43,7 @@ import { z } from "zod"
 const createSubjectSchema = z.object({
   name: z.string().min(2),
   description: z.string().min(2),
-  creditHours: z.number().int().min(1).max(10),
+  creditHours: z.number().int().min(1).max(10).optional(),
   level: z.enum([
     "PRE_SCHOOL",
     "LOWER_PRIMARY",
