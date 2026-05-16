@@ -117,6 +117,9 @@ export async function POST(
       )
     }
 
+    // ------------------------------------------------
+    // CREATE CLASS SUBJECT ASSIGNMENTS
+    // ------------------------------------------------
     await prisma.teacherClassSubject.createMany({
       data: classSubjectIds.map(
         (classSubjectId: string) => ({
@@ -127,6 +130,43 @@ export async function POST(
       skipDuplicates: true,
     })
 
+    // ------------------------------------------------
+    // GET RELATED SUBJECT IDS
+    // ------------------------------------------------
+    const classSubjects = await prisma.classSubject.findMany({
+      where: {
+        id: {
+          in: classSubjectIds,
+        },
+      },
+      select: {
+        subjectId: true,
+      },
+    })
+
+    const subjectIds = [
+      ...new Set(
+        classSubjects.map((cs) => cs.subjectId)
+      ),
+    ]
+
+    // ------------------------------------------------
+    // UPDATE SUBJECT TEACHER
+    // ------------------------------------------------
+    await prisma.subject.updateMany({
+      where: {
+        id: {
+          in: subjectIds,
+        },
+      },
+      data: {
+        teacherId: teacher.id,
+      },
+    })
+
+    // ------------------------------------------------
+    // RETURN UPDATED ASSIGNMENTS
+    // ------------------------------------------------
     const assignments =
       await prisma.teacherClassSubject.findMany({
         where: {
@@ -157,8 +197,6 @@ export async function POST(
     )
   }
 }
-
-// app/api/staff/[id]/subjects/route.ts
 
 export async function DELETE(
   request: NextRequest,

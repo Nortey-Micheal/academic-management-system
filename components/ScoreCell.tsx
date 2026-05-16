@@ -6,9 +6,10 @@ interface Props {
   value: number;
   max: number;
   onChange: (value: number) => void;
+  disabled: boolean
 }
 
-export default function ScoreCell({ value, max, onChange }: Props) {
+export default function ScoreCell({ value, max, onChange,disabled }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -51,6 +52,7 @@ export default function ScoreCell({ value, max, onChange }: Props) {
         onChange={(e) => setInputValue(e.target.value)}
         onBlur={commit}
         onKeyDown={handleKeyDown}
+        disabled={disabled}
         className="w-full h-full text-center border-0 bg-blue-50 font-medium text-foreground outline-none p-0 m-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
       />
     );

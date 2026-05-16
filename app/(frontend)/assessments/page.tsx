@@ -1,8 +1,7 @@
 import AssessmentPage from "@/components/assessment-page"
-import { ClassesTable } from "@/components/classes-table"
 import AppLayout from "@/components/layouts/applayout"
 
-export default async function ClassesPage() {
+export default async function AssessmentsPage() {
   return (
     <AppLayout>
 

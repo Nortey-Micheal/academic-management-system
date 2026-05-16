@@ -57,14 +57,8 @@ export async function GET(
           },
         },
         subjects: {
-          select: {
-            id: true,
-            subject: {
-              select: {
-                id: true,
-                subjectName: true,
-              },
-            },
+          include: {
+            subject: true,
           },
         },
       },
@@ -85,17 +79,26 @@ export async function GET(
 
     // Merge form teacher classes (avoid duplicates)
     for (const cls of formTeacherClasses) {
+      const transformedSubjects = cls.subjects.map(
+        (item) => item.subject
+      );
+
       if (!subjectClassesMap.has(cls.id)) {
-        subjectClassesMap.set(cls.id, cls);
+        subjectClassesMap.set(cls.id, {
+          ...cls,
+          subjects: transformedSubjects,
+        });
       } else {
-        // Merge subjects if needed
-        cls.subjects.forEach((s) => {
+        const existingSubjects =
+          subjectClassesMap.get(cls.id).subjects;
+
+        transformedSubjects.forEach((subject) => {
           if (
-            !subjectClassesMap
-              .get(cls.id)
-              .subjects.some((sub:{id: string}) => sub.id === s.subject.id)
+            !existingSubjects.some(
+              (s: { id: string }) => s.id === subject.id
+            )
           ) {
-            subjectClassesMap.get(cls.id).subjects.push(s.subject);
+            existingSubjects.push(subject);
           }
         });
       }
@@ -111,7 +114,7 @@ export async function GET(
     });
 
     return NextResponse.json(classes);
-  } catch (error) {
+  } catch (error) {``
     console.error(error);
     return NextResponse.json(
       { error: "Failed to fetch classes, subjects, and students" },
