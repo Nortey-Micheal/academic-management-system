@@ -3,6 +3,8 @@
 import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { StudentReport } from '@/lib/types';
+import { getSchoolConfig } from '@/config';
+import Image from 'next/image';
 
 
 
@@ -11,6 +13,8 @@ interface ReportCardProps {
   schoolLogo?: string;
   headteacherSignature?: string;
 }
+
+const school = getSchoolConfig()
 
 const ReportCard: React.FC<ReportCardProps> = ({ student }) => {
   const reportRef = useRef<HTMLDivElement>(null);
@@ -182,8 +186,10 @@ const ReportCard: React.FC<ReportCardProps> = ({ student }) => {
       >
         {/* Header Section */}
         <div className="flex gap-6 mb-6 items-start">
-          <div className="border-2 border-black p-2 flex items-center justify-center bg-gray-50" style={{ width: '70px', height: '70px' }}>
-            <div className="text-sm text-center text-gray-600">School<br />Logo</div>
+          <div className="flex items-center justify-center" style={{ width: '70px', height: '70px' }}>
+            <div className="text-sm text-center text-gray-600">
+              <Image width={100} height={100} alt={`${school.name}'s Logo`} src={school.branding.logo}/>
+            </div>
           </div>
 
           <div className="flex-1">
@@ -199,7 +205,7 @@ const ReportCard: React.FC<ReportCardProps> = ({ student }) => {
 
         {/* Report Title */}
         <div className="bg-gray-600 text-white text-center py-2 font-bold mb-2 border-2 border-black">
-          PUPIL'S TERMLY REPORT (BASIC 4)
+          PUPIL'S TERMLY REPORT ({`Basic ${student.grade}`})
         </div>
 
         {/* Student Info Section */}
@@ -220,7 +226,7 @@ const ReportCard: React.FC<ReportCardProps> = ({ student }) => {
               </tr>
               <tr>
                 <td className="border border-black font-bold bg-gray-200 p-1" style={{ backgroundColor: '#d3d3d3', fontWeight: 'bold' }}>CLASS:</td>
-                <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#ffffff' }}>BASIC 4</td>
+                <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#ffffff' }}>BASIC {`${student.grade}`}</td>
                 <td className="border border-black font-bold bg-gray-200 p-1" style={{ backgroundColor: '#d3d3d3', fontWeight: 'bold' }}>PROMOTED:</td>
                 <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#ffffff' }}>{student.promotedTo}</td>
               </tr>

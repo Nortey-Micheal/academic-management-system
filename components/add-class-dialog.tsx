@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react"
 import type React from "react"
+
 import { Button } from "@/components/ui/button"
+
 import {
   Dialog,
   DialogContent,
@@ -11,9 +13,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Plus } from "lucide-react"
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+import {
+  BookOpen,
+  GraduationCap,
+  Plus,
+  Users,
+} from "lucide-react"
 
 interface AddClassDialogProps {
   onClassAdded: () => void
@@ -35,11 +52,28 @@ interface Teacher {
   }
 }
 
-export function AddClassDialog({ onClassAdded }: AddClassDialogProps) {
+interface AcademicYear {
+  id: string
+  year: string
+  isActive: boolean
+}
+
+export function AddClassDialog({
+  onClassAdded,
+}: AddClassDialogProps) {
   const [open, setOpen] = useState(false)
+
   const [loading, setLoading] = useState(false)
+
   const [teachers, setTeachers] = useState<Teacher[]>([])
-  const [teacherLoading, setTeacherLoading] = useState(false)
+  const [teacherLoading, setTeacherLoading] =
+    useState(false)
+
+  const [academicYears, setAcademicYears] =
+    useState<AcademicYear[]>([])
+
+  const [academicYearsLoading, setAcademicYearsLoading] =
+    useState(false)
 
   const [formData, setFormData] = useState({
     level: "" as Level | "",
@@ -50,9 +84,14 @@ export function AddClassDialog({ onClassAdded }: AddClassDialogProps) {
     classTeacherId: "",
   })
 
-  /* -------------------------- Helpers -------------------------- */
+  /* -------------------------------------------------- */
+  /* HELPERS */
+  /* -------------------------------------------------- */
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (
+    field: string,
+    value: string
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -68,43 +107,83 @@ export function AddClassDialog({ onClassAdded }: AddClassDialogProps) {
       capacity: "30",
       classTeacherId: "",
     })
+
     setTeachers([])
   }
 
-  /* -------------------- Academic Year Format -------------------- */
+  /* -------------------------------------------------- */
+  /* FETCH ACADEMIC YEARS */
+  /* -------------------------------------------------- */
 
-  const handleAcademicYearChange = (value: string) => {
-    const cleaned = value.replace(/[^0-9/]/g, "")
+  useEffect(() => {
+    const fetchAcademicYears = async () => {
+      try {
+        setAcademicYearsLoading(true)
 
-    // Auto-format: 2025 → 2025/2026
-    if (cleaned.length === 4 && !cleaned.includes("/")) {
-      const startYear = Number(cleaned)
-      const nextYear = startYear + 1
-      handleChange("academicYear", `${startYear}/${nextYear}`)
-    } else {
-      handleChange("academicYear", cleaned)
+        const response = await fetch(
+          "/api/settings/academic"
+        )
+
+        if (!response.ok) {
+          throw new Error(
+            "Failed to fetch academic years"
+          )
+        }
+
+        const data = await response.json()
+
+        setAcademicYears(data.academicYears || [])
+
+        // auto-select current academic year
+        const currentYear = data.academicYears?.find(
+          (year: AcademicYear) => year.isActive
+        )
+
+        if (currentYear) {
+          setFormData((prev) => ({
+            ...prev,
+            academicYear: currentYear.name,
+          }))
+        }
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setAcademicYearsLoading(false)
+      }
     }
-  }
 
-  /* -------------------- Fetch Available Teachers -------------------- */
+    fetchAcademicYears()
+  }, [])
+
+  /* -------------------------------------------------- */
+  /* FETCH AVAILABLE TEACHERS */
+  /* -------------------------------------------------- */
 
   useEffect(() => {
     const fetchTeachers = async () => {
-      if (!formData.level || !formData.academicYear) {
+      if (
+        !formData.level ||
+        !formData.academicYear
+      ) {
         setTeachers([])
         return
       }
 
-      setTeacherLoading(true)
-
       try {
-        const res = await fetch(
+        setTeacherLoading(true)
+
+        const response = await fetch(
           `/api/teachers/available?level=${formData.level}&academicYear=${formData.academicYear}`
         )
 
-        if (!res.ok) throw new Error("Failed to fetch teachers")
+        if (!response.ok) {
+          throw new Error(
+            "Failed to fetch teachers"
+          )
+        }
 
-        const data = await res.json()
+        const data = await response.json()
+
         setTeachers(data)
       } catch (error) {
         console.error(error)
@@ -117,42 +196,47 @@ export function AddClassDialog({ onClassAdded }: AddClassDialogProps) {
     fetchTeachers()
   }, [formData.level, formData.academicYear])
 
-  /* --------------------------- Submit --------------------------- */
+  /* -------------------------------------------------- */
+  /* SUBMIT */
+  /* -------------------------------------------------- */
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault()
-
-    const academicYearPattern = /^\d{4}\/\d{4}$/
-
-    if (!academicYearPattern.test(formData.academicYear)) {
-      alert("Academic Year must be in format YYYY/YYYY (e.g. 2025/2026)")
-      return
-    }
 
     setLoading(true)
 
     try {
       const response = await fetch("/api/classes", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
+
         body: JSON.stringify({
           level: formData.level,
           grade: Number(formData.grade),
           section: formData.section,
           academicYear: formData.academicYear,
           capacity: Number(formData.capacity),
-          classTeacherId: formData.classTeacherId || null,
+          classTeacherId:
+            formData.classTeacherId || null,
         }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to create class")
+        throw new Error(
+          data.message || "Failed to create class"
+        )
       }
 
       setOpen(false)
+
       resetForm()
+
       onClassAdded()
     } catch (error: any) {
       alert(error.message)
@@ -161,133 +245,271 @@ export function AddClassDialog({ onClassAdded }: AddClassDialogProps) {
     }
   }
 
-  /* ---------------------------- UI ---------------------------- */
+  /* -------------------------------------------------- */
+  /* UI */
+  /* -------------------------------------------------- */
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={setOpen}
+
+    >
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
+        <Button className="gap-2">
+          <Plus className="w-4 h-4" />
           Add Class
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Add New Class</DialogTitle>
-          <DialogDescription>
-            Create a new class for the academic year
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[620px] p-0 overflow-auto h-[90%] ">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-primary/10 to-primary/5 border-b px-6 py-5">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <GraduationCap className="w-6 h-6 text-primary" />
+              Create New Class
+            </DialogTitle>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+            <DialogDescription className="pt-1">
+              Set up a class and assign a class teacher
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-          {/* Level */}
-          <div className="space-y-2">
-            <Label>Level</Label>
-            <select
-              className="w-full border rounded-md p-2"
-              value={formData.level}
-              onChange={(e) => handleChange("level", e.target.value)}
-              required
-            >
-              <option value="">Select Level</option>
-              <option value="PRE_SCHOOL">Pre School</option>
-              <option value="LOWER_PRIMARY">Lower Primary</option>
-              <option value="UPPER_PRIMARY">Upper Primary</option>
-              <option value="JUNIOR_HIGH_SCHOOL">Junior High School</option>
-            </select>
-          </div>
+        {/* Form */}
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6 p-6"
+        >
+          {/* Academic Details */}
+          <div className="rounded-2xl border bg-muted/30 p-5 space-y-5">
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-primary" />
 
-          {/* Academic Year */}
-          <div className="space-y-2">
-            <Label>Academic Year</Label>
-            <Input
-              placeholder="2025/2026"
-              value={formData.academicYear}
-              onChange={(e) =>
-                handleAcademicYearChange(e.target.value)
-              }
-              required
-            />
-          </div>
+              <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+                Academic Information
+              </h3>
+            </div>
 
-          {/* Class Teacher */}
-          <div className="space-y-2">
-            <Label>Class Teacher (Optional)</Label>
-            <select
-              className="w-full border rounded-md p-2"
-              value={formData.classTeacherId}
-              onChange={(e) =>
-                handleChange("classTeacherId", e.target.value)
-              }
-              disabled={teacherLoading || teachers.length === 0}
-            >
-              <option value="">
-                {teacherLoading
-                  ? "Loading teachers..."
-                  : teachers.length === 0
-                  ? "No available teachers"
-                  : "Select Teacher"}
-              </option>
-
-              {teachers.map((teacher) => (
-                <option key={teacher.id} value={teacher.id}>
-                  {teacher.user.firstName} {teacher.user.lastName}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Grade + Section */}
-          <div className="grid grid-cols-2 gap-4">
+            {/* Level */}
             <div className="space-y-2">
-              <Label>Grade</Label>
+              <Label>Level</Label>
+
+              <Select
+                value={formData.level}
+                onValueChange={(value) =>
+                  handleChange("level", value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select level" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="PRE_SCHOOL">
+                    Pre School
+                  </SelectItem>
+
+                  <SelectItem value="LOWER_PRIMARY">
+                    Lower Primary
+                  </SelectItem>
+
+                  <SelectItem value="UPPER_PRIMARY">
+                    Upper Primary
+                  </SelectItem>
+
+                  <SelectItem value="JUNIOR_HIGH_SCHOOL">
+                    Junior High School
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Academic Year */}
+            <div className="space-y-2">
+              <Label>Academic Year</Label>
+
+              <Select
+                value={formData.academicYear}
+                onValueChange={(value) =>
+                  handleChange(
+                    "academicYear",
+                    value
+                  )
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      academicYearsLoading
+                        ? "Loading..."
+                        : "Select academic year"
+                    }
+                  />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {academicYears.map((year) => (
+                    <SelectItem
+                      key={year.id}
+                      value={year.year}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>{year.year}</span>
+
+                        {year.isActive && (
+                          <span className="text-xs text-green-600 font-medium">
+                            Current
+                          </span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Class Setup */}
+          <div className="rounded-2xl border bg-muted/30 p-5 space-y-5">
+            <div className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-primary" />
+
+              <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+                Class Setup
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Grade */}
+              <div className="space-y-2">
+                <Label>Grade</Label>
+
+                <Input
+                  type="number"
+                  min={1}
+                  placeholder="Enter grade"
+                  value={formData.grade}
+                  onChange={(e) =>
+                    handleChange(
+                      "grade",
+                      e.target.value
+                    )
+                  }
+                  required
+                />
+              </div>
+
+              {/* Section */}
+              <div className="space-y-2">
+                <Label>Section</Label>
+
+                <Select
+                  value={formData.section}
+                  onValueChange={(value) =>
+                    handleChange(
+                      "section",
+                      value
+                    )
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select section" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {[
+                      "A",
+                      "B",
+                      "C",
+                      "D",
+                      "E",
+                      "F",
+                    ].map((section) => (
+                      <SelectItem
+                        key={section}
+                        value={section}
+                      >
+                        Section {section}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Capacity */}
+            <div className="space-y-2">
+              <Label>Class Capacity</Label>
+
               <Input
                 type="number"
                 min={1}
-                value={formData.grade}
+                value={formData.capacity}
                 onChange={(e) =>
-                  handleChange("grade", e.target.value)
+                  handleChange(
+                    "capacity",
+                    e.target.value
+                  )
                 }
-                required
               />
             </div>
+          </div>
+
+          {/* Teacher */}
+          <div className="rounded-2xl border bg-muted/30 p-5 space-y-4">
+            <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+              Class Teacher
+            </h3>
 
             <div className="space-y-2">
-              <Label>Section</Label>
-              <select
-                className="w-full border rounded-md p-2"
-                value={formData.section}
-                onChange={(e) =>
-                  handleChange("section", e.target.value)
+              <Label>
+                Assign Teacher (Optional)
+              </Label>
+
+              <Select
+                value={formData.classTeacherId}
+                onValueChange={(value) =>
+                  handleChange(
+                    "classTeacherId",
+                    value
+                  )
                 }
-                required
+                disabled={
+                  teacherLoading ||
+                  teachers.length === 0
+                }
               >
-                <option value="">Select Section</option>
-                {["A", "B", "C", "D", "E", "F"].map((sec) => (
-                  <option key={sec} value={sec}>
-                    {sec}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      teacherLoading
+                        ? "Loading teachers..."
+                        : teachers.length === 0
+                        ? "No available teachers"
+                        : "Select class teacher"
+                    }
+                  />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {teachers.map((teacher) => (
+                    <SelectItem
+                      key={teacher.id}
+                      value={teacher.id}
+                    >
+                      {teacher.user.firstName}{" "}
+                      {teacher.user.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          {/* Capacity */}
-          <div className="space-y-2">
-            <Label>Capacity</Label>
-            <Input
-              type="number"
-              min={1}
-              value={formData.capacity}
-              onChange={(e) =>
-                handleChange("capacity", e.target.value)
-              }
-            />
-          </div>
-
-          <div className="flex justify-end gap-2">
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
@@ -296,8 +518,14 @@ export function AddClassDialog({ onClassAdded }: AddClassDialogProps) {
               Cancel
             </Button>
 
-            <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Class"}
+            <Button
+              type="submit"
+              disabled={loading}
+              className="min-w-[140px]"
+            >
+              {loading
+                ? "Creating..."
+                : "Create Class"}
             </Button>
           </div>
         </form>

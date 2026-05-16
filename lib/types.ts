@@ -72,6 +72,7 @@ export interface StudentReport {
   attitude: string;
   classTeacherRemark: string;
   subjects: SubjectScore[];
+  grade: number
 }
 
 export type ClassWithStudentsAndSubjects = {

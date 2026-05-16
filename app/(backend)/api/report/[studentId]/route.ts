@@ -61,7 +61,8 @@ export async function GET(
     const student = await prisma.student.findUnique({
       where: { id: studentId },
       include: {
-        class: true
+        class: true,
+        user: true
       }
     });
 
@@ -133,7 +134,7 @@ export async function GET(
     /* 6️⃣ Final Report Object */
     const report = {
       id: student.id,
-      name: student.studentId, // or join user.firstName + lastName if needed
+      name: `${student.user.lastName} ${student.user.firstName}`, // or join user.firstName + lastName if needed
       age: calculateAge(student.dateOfBirth),
       attendance: "", // integrate Attendance model later
       term: String(term),
@@ -144,7 +145,8 @@ export async function GET(
       conduct: "",
       attitude: "",
       classTeacherRemark: "",
-      subjects
+      subjects,
+      grade: student.class.grade
     };
 
     return NextResponse.json(report, { status: 200 });
