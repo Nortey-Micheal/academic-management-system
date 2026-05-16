@@ -10,51 +10,95 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Edit2, Trash2, Users, MoreVertical } from 'lucide-react'
+import { Edit2, Trash2, Users, MoreVertical, BookOpen } from 'lucide-react'
 
 interface SubjectCardProps {
   subject: {
     id: string
-    name: string
-    code: string
-    level: string
+    subjectName: string
+    subjectCode: string
+    level: 'PRE_SCHOOL' | 'LOWER_PRIMARY' | 'UPPER_PRIMARY' | 'JUNIOR_HIGH_SCHOOL'
     creditHours: number
-    teacher: { id: string; name: string; avatar: string } | null
-    classCount: number
+    teacher?: {
+      id: string
+      user: {
+        firstName: string
+        lastName: string
+      }
+    } | null
+    classLinks?: any[]
   }
   onEdit: () => void
   onAssignClass: () => void
+  onDelete?: () => void
 }
 
-const levelColors: Record<string, { bg: string; text: string; label: string }> = {
-  primary: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Primary' },
-  jhs: { bg: 'bg-purple-100', text: 'text-purple-700', label: 'JHS' },
-  shs: { bg: 'bg-cyan-100', text: 'text-cyan-700', label: 'SHS' },
+/* ---------------- Level UI ---------------- */
+const levelConfig: Record<string, { label: string; className: string }> = {
+  PRE_SCHOOL: {
+    label: 'Pre School',
+    className: 'bg-pink-100 text-pink-700',
+  },
+  LOWER_PRIMARY: {
+    label: 'Lower Primary',
+    className: 'bg-blue-100 text-blue-700',
+  },
+  UPPER_PRIMARY: {
+    label: 'Upper Primary',
+    className: 'bg-indigo-100 text-indigo-700',
+  },
+  JUNIOR_HIGH_SCHOOL: {
+    label: 'JHS',
+    className: 'bg-purple-100 text-purple-700',
+  },
 }
 
-export function SubjectCard({ subject, onEdit, onAssignClass }: SubjectCardProps) {
-  const levelInfo = levelColors[subject.level] || levelColors.primary
+/* ---------------- Component ---------------- */
+
+export function SubjectCard({
+  subject,
+  onEdit,
+  onAssignClass,
+  onDelete,
+}: SubjectCardProps) {
+  const level = levelConfig[subject.level]
+
+  const classCount = subject.classLinks?.length ?? 0
 
   return (
-    <Card className="hover:shadow-lg transition-shadow h-full flex flex-col">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1">
-            <h3 className="font-semibold text-foreground text-lg line-clamp-2">{subject.name}</h3>
-            <p className="text-sm text-muted-foreground mt-1">{subject.code}</p>
+    <Card className="group hover:shadow-lg transition-all duration-200 border-muted/50">
+      
+      {/* HEADER */}
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between">
+          
+          <div className="space-y-1">
+            <h3 className="font-semibold text-base line-clamp-1">
+              {subject.subjectName}
+            </h3>
+
+            <p className="text-xs text-muted-foreground">
+              {subject.subjectCode}
+            </p>
           </div>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Button variant="ghost" size="icon" className="h-8 w-8">
                 <MoreVertical className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
+
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onEdit} className="gap-2">
                 <Edit2 className="w-4 h-4" />
                 Edit
               </DropdownMenuItem>
-              <DropdownMenuItem className="gap-2 text-red-600">
+
+              <DropdownMenuItem
+                onClick={onDelete}
+                className="gap-2 text-red-600"
+              >
                 <Trash2 className="w-4 h-4" />
                 Delete
               </DropdownMenuItem>
@@ -63,57 +107,69 @@ export function SubjectCard({ subject, onEdit, onAssignClass }: SubjectCardProps
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 pb-3">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Badge className={`${levelInfo.bg} ${levelInfo.text} border-0`}>
-              {levelInfo.label}
-            </Badge>
-            <span className="text-xs font-medium text-muted-foreground">
-              {subject.creditHours} Credit{subject.creditHours > 1 ? 's' : ''}
+      {/* CONTENT */}
+      <CardContent className="space-y-3">
+
+        {/* LEVEL + CREDIT */}
+        <div className="flex items-center justify-between">
+          <Badge className={`${level.className} border-0`}>
+            {level.label}
+          </Badge>
+
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <BookOpen className="w-3 h-3" />
+            <span>{subject.creditHours}h</span>
+          </div>
+        </div>
+
+        {/* TEACHER */}
+        <div className="border rounded-md p-2 bg-muted/30">
+          <p className="text-[11px] text-muted-foreground">Teacher</p>
+
+          {subject.teacher ? (
+            <p className="text-sm font-medium truncate">
+              {subject.teacher.user.lastName}{' '}
+              {subject.teacher.user.firstName}
+            </p>
+          ) : (
+            <p className="text-sm text-amber-600">Unassigned</p>
+          )}
+        </div>
+
+        {/* CLASSES */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <Users className="w-3 h-3" />
+            <span>
+              {classCount} class{classCount !== 1 ? 'es' : ''}
             </span>
           </div>
 
-          <div className="border-t pt-3">
-            {subject.teacher ? (
-              <div className="flex items-center gap-2">
-                <Avatar className="h-6 w-6">
-                  <AvatarFallback className="text-xs bg-emerald-100 text-emerald-700">
-                    {subject.teacher.avatar}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground">Teacher</p>
-                  <p className="text-sm font-medium text-foreground truncate">
-                    {subject.teacher.name}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <p className="text-xs text-muted-foreground">Teacher</p>
-                <p className="text-sm text-amber-600 font-medium">Unassigned</p>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Users className="w-4 h-4" />
-            <span>{subject.classCount} class{subject.classCount !== 1 ? 'es' : ''}</span>
-          </div>
+          {classCount > 0 && (
+            <span className="text-green-600 font-medium">
+              Assigned
+            </span>
+          )}
         </div>
       </CardContent>
 
-      <CardFooter className="gap-2 pt-3 border-t">
+      {/* FOOTER */}
+      <CardFooter className="gap-2 pt-2">
         <Button
           variant="outline"
           size="sm"
           onClick={onAssignClass}
-          className="flex-1 text-xs"
+          className="flex-1"
         >
           Assign Class
         </Button>
-        <Button variant="ghost" size="sm" onClick={onEdit} className="flex-1 text-xs">
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onEdit}
+          className="flex-1"
+        >
           Edit
         </Button>
       </CardFooter>

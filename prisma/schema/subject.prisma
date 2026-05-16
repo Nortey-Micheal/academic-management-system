@@ -4,7 +4,7 @@ model Subject {
   subjectName String
   description String
   teacherId   String?
-  creditHours Int
+  creditHours Int      @default(1)
   createdAt   DateTime @default(now())
   level       Level
 

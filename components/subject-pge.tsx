@@ -44,7 +44,10 @@ export default function SubjectsPage() {
   }
 
   const handleFilterChange = (newFilters: Partial<SubjectFilters>) => {
-    setFilters({ ...filters, ...newFilters })
+    setFilters((prev) => ({
+      ...prev,
+      ...newFilters,
+    }))
   }
 
   return (

@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { toast } from 'sonner'
 
 interface AddSubjectModalProps {
   open: boolean
@@ -46,7 +47,6 @@ export function AddSubjectModal({
     code: '',
     description: '',
     level: level || 'primary',
-    creditHours: '3',
   })
   const isMobile = useIsMobile()
 
@@ -57,7 +57,6 @@ export function AddSubjectModal({
         code: subject.code,
         description: '',
         level: subject.level,
-        creditHours: subject.creditHours.toString(),
       })
     } else {
       setFormData({
@@ -65,20 +64,47 @@ export function AddSubjectModal({
         code: '',
         description: '',
         level: level || 'primary',
-        creditHours: '3',
       })
     }
   }, [subject, level, open])
 
-  const generateSubjectCode = (name: string) => {
-    const code = name
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase())
-      .join('')
-      .slice(0, 4)
-      .padEnd(4, '0')
-    const number = Math.floor(Math.random() * 900) + 100
-    return `${code}${number}`
+  const LEVEL_ABBREVIATIONS: Record<string, string> = {
+    PRE_SCHOOL: 'PS',
+    LOWER_PRIMARY: 'LP',
+    UPPER_PRIMARY: 'UP',
+    JUNIOR_HIGH_SCHOOL: 'JHS',
+  }
+
+  const generateSubjectCode = (
+    name: string,
+    level: string
+  ) => {
+    // English Language → EL
+    // Social Studies → SS
+
+    const subjectAbbr = (() => {
+      const words = name.trim().split(/\s+/).filter(Boolean)
+
+      // single word → first 3 letters
+      if (words.length === 1) {
+        return words[0].slice(0, 3).toUpperCase()
+      }
+
+      // multi-word → initials (max 4 chars)
+      return words
+        .map((word) => word.charAt(0).toUpperCase())
+        .join('')
+        .slice(0, 4)
+    })()
+
+    const levelAbbr =
+      LEVEL_ABBREVIATIONS[level] || 'GEN'
+
+    // Random number
+    const number =
+      Math.floor(Math.random() * 900) + 100
+
+    return `${subjectAbbr}-${levelAbbr}-${number}`
   }
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,15 +112,25 @@ export function AddSubjectModal({
     setFormData((prev) => ({
       ...prev,
       name,
-      code: formData.code || generateSubjectCode(name),
+      code: generateSubjectCode(name,level!),
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission here
-    console.log('Form submitted:', formData)
-    onOpenChange(false)
+
+    const res = await fetch(`/api/subjects`,{
+      body: JSON.stringify(formData),method: 'POST'
+    })
+
+    const data = await res.json()
+
+    if (data.success) {
+      onOpenChange(false)
+      toast.success(data.message)
+    } else {
+      toast.error(data.error)
+    }
   }
 
   const content = (
@@ -121,6 +157,7 @@ export function AddSubjectModal({
             onChange={(e) => setFormData({ ...formData, code: e.target.value })}
             className="mt-2"
             required
+            disabled
           />
           <p className="text-xs text-muted-foreground mt-1">Auto-generated based on name</p>
         </div>
@@ -137,39 +174,19 @@ export function AddSubjectModal({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="level">Level *</Label>
-            <Select value={formData.level} onValueChange={(value) => setFormData({ ...formData, level: value })}>
-              <SelectTrigger className="mt-2">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="primary">Primary</SelectItem>
-                <SelectItem value="jhs">Junior High School</SelectItem>
-                <SelectItem value="shs">Senior High School</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="creditHours">Credit Hours *</Label>
-            <Select
-              value={formData.creditHours}
-              onValueChange={(value) => setFormData({ ...formData, creditHours: value })}
-            >
-              <SelectTrigger className="mt-2">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1</SelectItem>
-                <SelectItem value="2">2</SelectItem>
-                <SelectItem value="3">3</SelectItem>
-                <SelectItem value="4">4</SelectItem>
-                <SelectItem value="5">5</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div>
+          <Label htmlFor="level">Level *</Label>
+          <Select value={formData.level} onValueChange={(value) => setFormData({ ...formData, level: value,code: generateSubjectCode(formData.name,value!) })}>
+            <SelectTrigger className="mt-2">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="PRE_SCHOOL">Pre School</SelectItem>
+              <SelectItem value="LOWER_PRIMARY">Lower Primary</SelectItem>
+              <SelectItem value="UPPER_PRIMARY">Upper Primary</SelectItem>
+              <SelectItem value="JUNIOR_HIGH_SCHOOL">Junior High School</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
