@@ -31,7 +31,7 @@ export default function ReportCardGenerator() {
   }, [selectedStudentId]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-50 py-8 px-4">
+    <main className="min-h-screen py-8">
       <div className="max-w-6xl mx-auto">
 
         {!selectedStudentId ? (

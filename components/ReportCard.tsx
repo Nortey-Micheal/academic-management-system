@@ -160,7 +160,7 @@ const ReportCard: React.FC<ReportCardProps> = ({ student }) => {
 
   return (
     <div className="w-full">
-      <div className="flex gap-4 mb-6 justify-center flex-wrap">
+      <div className="flex gap-4 mb-6 lg:justify-center flex-wrap">
         <Button
           onClick={handlePrint}
           className="bg-blue-600 hover:bg-blue-700"
@@ -177,7 +177,7 @@ const ReportCard: React.FC<ReportCardProps> = ({ student }) => {
 
       <div
         ref={reportRef}
-        className="bg-white p-8 max-w-4xl mx-auto"
+        className="bg-white p-2 lg:p-8 max-w-4xl mx-auto"
         style={{
           fontFamily: "'Arial', sans-serif",
           fontSize: '11px',
@@ -306,7 +306,7 @@ const ReportCard: React.FC<ReportCardProps> = ({ student }) => {
         </div>
 
         {/* Assessment Guide */}
-        <div className="mt-1 text-sm">
+        <div className="mt-1 w-full overflow-auto text-sm">
           <div className="font-bold mb-1 text-sm">ASSESSMENT GUIDE</div>
           <table className="w-full border-2 border-black">
             <tbody>
