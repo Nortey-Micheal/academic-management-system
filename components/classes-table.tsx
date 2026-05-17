@@ -177,7 +177,7 @@ export function ClassesTable() {
       {/* ------------------------------------------------ */}
       {/* OVERVIEW STATS */}
       {/* ------------------------------------------------ */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
 
         <Card>
           <CardContent className="pt-6 flex items-center justify-between">
