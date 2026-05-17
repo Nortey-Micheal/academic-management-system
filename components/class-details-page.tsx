@@ -177,7 +177,7 @@ export default function ClassDetailPage({
                     </Button>
                 </Link>
 
-                <div className="space-y-1 sm:space-y-2">
+                <div className="space-y-1 sm:space-y-2 overflow-hidden">
 
                 {/* TOP SECTION */}
                 <div className="flex mb-2 items-center gap-3 sm:gap-4">
@@ -218,7 +218,7 @@ export default function ClassDetailPage({
                 </div>
 
                 {/* QUICK STATS */}
-                <div className="w-[70%] lg:w-full overflow-hidden">
+                <div className="w-full overflow-hidden">
                     <div className="flex gap-2 overflow-x-auto w-full pb-1 scrollbar-hide">
                         
                         <Card className="shadow-none border bg-background min-w-[120px] sm:min-w-[140px] py-2 lg:py-6 shrink-0">
@@ -418,7 +418,7 @@ export default function ClassDetailPage({
               </div>
             </div>
 
-            <StudentsTab classId={classData.id} />
+            <StudentsTab classId={classData.id}/>
           </TabsContent>
 
           {/* SUBJECTS */}
