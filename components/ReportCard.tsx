@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { StudentReport } from '@/lib/types';
 import { getSchoolConfig } from '@/config';
 import Image from 'next/image';
+import { formatDate } from '@/lib/utils';
 
 
 
@@ -216,13 +217,13 @@ const ReportCard: React.FC<ReportCardProps> = ({ student }) => {
                 <td className="border border-black font-bold bg-gray-200 p-1 w-1/4" style={{ backgroundColor: '#d3d3d3', fontWeight: 'bold' }}>PUPIL:</td>
                 <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#ffffff' }}>{student.name}</td>
                 <td className="border border-black font-bold bg-gray-200 p-1 w-1/4" style={{ backgroundColor: '#d3d3d3', fontWeight: 'bold' }}>ATTEND</td>
-                <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#ffffff' }}>{student.attendance}</td>
+                <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#ffffff' }}>{`${student.attendance.presentDays}`} / {`${student.attendance.totalDays}`}</td>
               </tr>
               <tr>
                 <td className="border border-black font-bold bg-gray-200 p-1" style={{ backgroundColor: '#d3d3d3', fontWeight: 'bold' }}>AGE:</td>
                 <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#ffffff' }}>{student.age}</td>
                 <td className="border border-black font-bold bg-gray-200 p-1" style={{ backgroundColor: '#d3d3d3', fontWeight: 'bold' }}>TERM END:</td>
-                <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#ffffff' }}>{student.termEnding}</td>
+                <td className="border border-black p-1 text-center text-sm" style={{ backgroundColor: '#ffffff' }}>{formatDate(student.termEnding)}</td>
               </tr>
               <tr>
                 <td className="border border-black font-bold bg-gray-200 p-1" style={{ backgroundColor: '#d3d3d3', fontWeight: 'bold' }}>CLASS:</td>

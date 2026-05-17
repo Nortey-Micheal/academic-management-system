@@ -2,6 +2,7 @@ import { Prisma } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+/* -------------------- HELPERS -------------------- */
 
 function calculateGrade(score: number) {
   if (score >= 80) return "A";
@@ -31,11 +32,11 @@ function calculateAge(dateOfBirth: Date) {
   return age;
 }
 
+/* -------------------- TYPES -------------------- */
+
 type ClassSubjectWithSubject = Prisma.ClassSubjectGetPayload<{
-  include: {
-    subject: true
-  }
-}>
+  include: { subject: true };
+}>;
 
 /* -------------------- GET -------------------- */
 
@@ -47,23 +48,41 @@ export async function GET(
     const { studentId } = await params;
     const searchParams = request.nextUrl.searchParams;
 
-    const term = searchParams.get("term");
     const year = searchParams.get("year");
+    const termNumber = searchParams.get("term");
 
-    if (!term || !year) {
+    if (!year || !termNumber) {
       return NextResponse.json(
         { message: "term and year are required" },
         { status: 400 }
       );
     }
 
-    /* 1️⃣ Fetch Student + Class */
+    const academicYearRecord = await prisma.academicYear.findFirst({
+      where: { year },
+    });
+
+    const termRecord = await prisma.term.findFirst({
+      where: {
+        termNumber: Number(termNumber),
+        academicYearId: academicYearRecord?.id,
+      },
+    });
+
+    if (!academicYearRecord || !termRecord) {
+      return NextResponse.json(
+        { message: "Invalid academic year or term" },
+        { status: 404 }
+      );
+    }
+
+    /* 1️⃣ Student */
     const student = await prisma.student.findUnique({
       where: { id: studentId },
       include: {
         class: true,
-        user: true
-      }
+        user: true,
+      },
     });
 
     if (!student) {
@@ -73,41 +92,67 @@ export async function GET(
       );
     }
 
-    //:(ClassSubject & { subject: { id: string; subjectName: string } })[]
-
-    /* 2️⃣ Fetch All Subjects Assigned To This Class */
+    /* 2️⃣ Class subjects */
     const classSubjects = await prisma.classSubject.findMany({
       where: {
-        classId: student.classId
+        classId: student.classId,
       },
       include: {
-        subject: true
+        subject: true,
       },
       orderBy: {
         subject: {
-          subjectName: "asc"
-        }
-      }
-    }) as ClassSubjectWithSubject[]
+          subjectName: "asc",
+        },
+      },
+    }) as ClassSubjectWithSubject[];
 
-    /* 3️⃣ Fetch All Assessments For Student (This Term) */
+    /* 3️⃣ Assessments */
     const assessments = await prisma.termAssessment.findMany({
       where: {
         studentId,
         classId: student.classId,
-        term: Number(term),
-        year: String(year)
-      }
+        term: Number(termNumber),
+        year,
+      },
     });
 
-    /* 4️⃣ Convert Assessments To Map */
+    console.log({assessments})
+
     const assessmentMap = new Map(
-      assessments.map(a => [a.subjectId, a])
+      assessments.map((a) => [a.subjectId, a])
     );
 
-    /* 5️⃣ Merge Subjects + Default Zero Scores */
-    const subjects = classSubjects.map(link => {
-      console.log(assessments)
+    /* 4️⃣ Attendance (daily records) */
+    const attendanceRecords = await prisma.attendance.findMany({
+      where: {
+        studentId,
+        classId: student.classId,
+        termId: termRecord.id,
+        academicYearId: academicYearRecord.id,
+      },
+      select: {
+        status: true,
+      },
+    });
+
+    const totalDays = attendanceRecords.length;
+
+    const presentDays = attendanceRecords.filter(
+      (a) => a.status === "present"
+    ).length;
+
+    const absentDays = attendanceRecords.filter(
+      (a) => a.status === "absent"
+    ).length;
+
+    const attendancePercentage =
+      totalDays > 0
+        ? Math.round((presentDays / totalDays) * 100)
+        : 0;
+
+    /* 5️⃣ Subjects + results */
+    const subjects = classSubjects.map((link) => {
       const subject = link.subject;
       const assessment = assessmentMap.get(subject.id);
 
@@ -117,8 +162,11 @@ export async function GET(
       const project = assessment?.project ?? 0;
       const exam = assessment?.exam ?? 0;
 
-      const classScore = (test1 + test2 + groupWork + project) / 2;
-      const examsScore = (exam) / 2;
+      const classScore =
+        (test1 + test2 + groupWork + project) / 2;
+
+      const examsScore = exam / 2;
+
       const totalScore = classScore + examsScore;
 
       return {
@@ -127,30 +175,39 @@ export async function GET(
         examsScore,
         totalScore,
         grade: calculateGrade(totalScore),
-        remarks: calculateRemarks(totalScore)
+        remarks: calculateRemarks(totalScore),
       };
     });
 
-    /* 6️⃣ Final Report Object */
+    /* 6️⃣ FINAL REPORT */
     const report = {
       id: student.id,
-      name: `${student.user.lastName} ${student.user.firstName}`, // or join user.firstName + lastName if needed
+      name: `${student.user.lastName} ${student.user.firstName}`,
       age: calculateAge(student.dateOfBirth),
-      attendance: "", // integrate Attendance model later
-      term: String(term),
-      academicPeriod: student.class.academicYear,
-      termEnding: "", // fetch from Term table if you create one
+
+      attendance: {
+        totalDays,
+        presentDays,
+        absentDays,
+        percentage: attendancePercentage,
+      },
+
+      term: termRecord.termNumber,
+      academicYear: academicYearRecord.year,
+
+      termEnding: termRecord.termEndDate,
       nextTermBegins: "",
       promotedTo: "",
       conduct: "",
       attitude: "",
       classTeacherRemark: "",
+
       subjects,
-      grade: student.class.grade
+
+      grade: student.class.grade,
     };
 
     return NextResponse.json(report, { status: 200 });
-
   } catch (error) {
     console.error(error);
     return NextResponse.json(

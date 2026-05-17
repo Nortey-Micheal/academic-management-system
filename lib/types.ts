@@ -62,7 +62,7 @@ export interface StudentReport {
   id: string;
   name: string;
   age: number;
-  attendance: string;
+  attendance: {totalDays: number, presentDays: number};
   term: string;
   academicPeriod: string;
   termEnding: string;
