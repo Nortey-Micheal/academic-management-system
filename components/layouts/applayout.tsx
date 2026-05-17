@@ -36,7 +36,7 @@ export default function AppLayout({
   return (
     <div className="flex h-screen flex-col md:flex-row bg-background overflow-hidden">
       <DashboardNav user={user}/>
-      <main className="flex-1 overflow-x-scroll container mx-auto p-6">{children}</main>
+      <main className="flex-1 overflow-x-scroll container mx-auto p-6 scrollbar-hide">{children}</main>
     </div>
   )
 }

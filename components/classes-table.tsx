@@ -316,7 +316,7 @@ export function ClassesTable() {
                     key={classItem.id}
                     className="border-2 transition-all hover:shadow-lg hover:-translate-y-1 cursor-pointer h-full"
                     onClick={() =>
-                      router.push(`/dashboard/classes/${classItem.id}`)
+                      router.push(`/classes/${classItem.id}`)
                     }
                   >
                     <CardContent className="pt-6 h-full">
@@ -475,7 +475,7 @@ export function ClassesTable() {
                               e.stopPropagation()
 
                               router.push(
-                                `/dashboard/classes/${classItem.id}`
+                                `/classes/${classItem.id}`
                               )
                             }}
                           >
