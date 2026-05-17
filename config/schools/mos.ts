@@ -13,7 +13,7 @@ export const mountOlivesSchool:SchoolConfig = {
   },
 
   branding: {
-    logo: "./mos-logo.webp",
+    logo: "/mos-logo.webp",
     primaryColor: "#2563eb",
     secondaryColor: ""
   },

@@ -180,7 +180,7 @@ export default function ClassDetailPage({
                 <div className="space-y-1 sm:space-y-2">
 
                 {/* TOP SECTION */}
-                <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                <div className="flex mb-2 items-center gap-3 sm:gap-4">
                     <Link href="/classes" className='md:hidden'>
                         <Button
                             variant="outline"
@@ -218,53 +218,60 @@ export default function ClassDetailPage({
                 </div>
 
                 {/* QUICK STATS */}
-                <div className="flex gap-2 overflow-x-auto w pb-1 -mx-1 px-1">
+                <div className="w-[70%] lg:w-full overflow-hidden">
+                    <div className="flex gap-2 overflow-x-auto w-full pb-1 scrollbar-hide">
+                        
+                        <Card className="shadow-none border bg-background min-w-[120px] sm:min-w-[140px] py-2 lg:py-6 shrink-0">
+                            <CardContent className="px-3 py-2 flex items-center gap-2">
+                                <Users className="h-4 w-4 text-primary shrink-0" />
 
-                    <Card className="shadow-none border bg-background min-w-[120px sm:min-w-[140p] py-2 lg:py-6">
-                    <CardContent className="px-3 py-2 flex items-center gap-2">
-                        <Users className="h-4 w-4 text-primary shrink-0" />
-                        <div>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground">
-                            Students
-                        </p>
-                        <p className="text-xs sm:text-sm font-semibold">
-                            {classData.currentEnrollment}/{classData.capacity}
-                        </p>
-                        </div>
-                    </CardContent>
-                    </Card>
+                                <div>
+                                    <p className="text-[10px] sm:text-xs text-muted-foreground">
+                                        Students
+                                    </p>
 
-                    <Card className="shadow-none border bg-background min-w-[120px sm:min-w-[140px py-2 lg:py-6">
-                    <CardContent className="px-3 py-2 flex items-center gap-2">
-                        <GraduationCap className="h-4 w-4 text-primary shrink-0" />
-                        <div>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground">
-                            Occupancy
-                        </p>
-                        <p className="text-xs sm:text-sm font-semibold">
-                            {occupancyRate}%
-                        </p>
-                        </div>
-                    </CardContent>
-                    </Card>
+                                    <p className="text-xs sm:text-sm font-semibold">
+                                        {classData.currentEnrollment}/{classData.capacity}
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                    <Card className="shadow-none border bg-background min-w-[140px sm:min-w-[160px py-2 lg:py-6">
-                    <CardContent className="px-3 py-2 flex items-center gap-2">
-                        <BookOpen className="h-4 w-4 text-primary shrink-0" />
-                        <div className="min-w-0">
-                        <p className="text-[10px] sm:text-xs text-muted-foreground">
-                            Teacher
-                        </p>
-                        <p className="text-xs sm:text-sm font-semibold truncate">
-                            {classTeacherName}
-                        </p>
-                        </div>
-                    </CardContent>
-                    </Card>
+                        <Card className="shadow-none border bg-background min-w-[120px] sm:min-w-[140px] py-2 lg:py-6 shrink-0">
+                            <CardContent className="px-3 py-2 flex items-center gap-2">
+                                <GraduationCap className="h-4 w-4 text-primary shrink-0" />
 
+                                <div>
+                                    <p className="text-[10px] sm:text-xs text-muted-foreground">
+                                        Occupancy
+                                    </p>
+
+                                    <p className="text-xs sm:text-sm font-semibold">
+                                        {occupancyRate}%
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="shadow-none border bg-background min-w-[140px] sm:min-w-[180px] py-2 lg:py-6 shrink-0">
+                            <CardContent className="px-3 py-2 flex items-center gap-2">
+                                <BookOpen className="h-4 w-4 text-primary shrink-0" />
+
+                                <div className="min-w-0">
+                                    <p className="text-[10px] sm:text-xs text-muted-foreground">
+                                        Teacher
+                                    </p>
+
+                                    <p className="text-xs sm:text-sm font-semibold truncate max-w-[120px] sm:max-w-[180px]">
+                                        {classTeacherName}
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                    </div>
                 </div>
-
-                </div>
+            </div>
             </div>
 
             {/* ACTIONS */}
