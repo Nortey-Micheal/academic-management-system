@@ -242,7 +242,7 @@ const ReportCard: React.FC<ReportCardProps> = ({ student }) => {
         </div>
 
         {/* Subjects Table */}
-        <div className="mb-4 overflow-auto border-2 border-black">
+        <div className="mb-4 w-full overflow-auto border-2 border-black">
           <table className="w-full">
             <thead>
               <tr className="bg-gray-600 text-white" style={{ backgroundColor: '#4b5563' }}>
