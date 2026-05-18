@@ -159,7 +159,7 @@ export default function ClassDetailPage({
   return (
     <div className="min-h-screen bg-muted/30 mb-0 pb-25">
       {/* HERO HEADER */}
-      <div className="border-b bg-background lg:sticky lg:top-0 z-40 lg:backdrop-blur supports-[backdrop-filter]:lg:bg-background/90">
+      <div className="border-b bg-background lg:sticky lg:top-0 z-40 lg:backdrop-blur supports-backdrop-filter:lg:bg-background/90">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-4 lg:py-5">
             
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-5">
@@ -221,7 +221,7 @@ export default function ClassDetailPage({
                 <div className="w-full overflow-hidden">
                     <div className="flex gap-2 overflow-x-auto w-full pb-1 scrollbar-hide">
                         
-                        <Card className="shadow-none border bg-background min-w-[120px] sm:min-w-[140px] py-2 lg:py-6 shrink-0">
+                        <Card className="shadow-none border bg-background min-w-30 sm:min-w-30 py-2 lg:py-6 shrink-0">
                             <CardContent className="px-3 py-2 flex items-center gap-2">
                                 <Users className="h-4 w-4 text-primary shrink-0" />
 
@@ -237,7 +237,7 @@ export default function ClassDetailPage({
                             </CardContent>
                         </Card>
 
-                        <Card className="shadow-none border bg-background min-w-[120px] sm:min-w-[140px] py-2 lg:py-6 shrink-0">
+                        <Card className="shadow-none border bg-background min-w-30 sm:min-w-30 py-2 lg:py-6 shrink-0">
                             <CardContent className="px-3 py-2 flex items-center gap-2">
                                 <GraduationCap className="h-4 w-4 text-primary shrink-0" />
 
@@ -253,7 +253,7 @@ export default function ClassDetailPage({
                             </CardContent>
                         </Card>
 
-                        <Card className="shadow-none border bg-background min-w-[140px] sm:min-w-[180px] py-2 lg:py-6 shrink-0">
+                        <Card className="shadow-none border bg-background min-w-30 sm:min-w-45 py-2 lg:py-6 shrink-0">
                             <CardContent className="px-3 py-2 flex items-center gap-2">
                                 <BookOpen className="h-4 w-4 text-primary shrink-0" />
 
@@ -262,7 +262,7 @@ export default function ClassDetailPage({
                                         Teacher
                                     </p>
 
-                                    <p className="text-xs sm:text-sm font-semibold truncate max-w-[120px] sm:max-w-[180px]">
+                                    <p className="text-xs sm:text-sm font-semibold truncate max-w-30 sm:max-w-45">
                                         {classTeacherName}
                                     </p>
                                 </div>
