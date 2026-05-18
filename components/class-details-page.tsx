@@ -157,7 +157,7 @@ export default function ClassDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-muted/30 mb-0 pb-25">
       {/* HERO HEADER */}
       <div className="border-b bg-background lg:sticky lg:top-0 z-40 lg:backdrop-blur supports-[backdrop-filter]:lg:bg-background/90">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-4 lg:py-5">
