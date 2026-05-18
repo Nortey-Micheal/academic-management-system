@@ -102,7 +102,7 @@ export function AssessmentsTab({ classId }: { classId: string }) {
 
         <CardContent className="p-0">
           <div className="w-full overflow-x-auto">
-            <Table className="min-w-[850px]">
+            <Table className="min-w-212.5">
               <TableHeader>
                 <TableRow>
                   <TableHead>Subject</TableHead>
@@ -111,7 +111,7 @@ export function AssessmentsTab({ classId }: { classId: string }) {
                   <TableHead className="text-right">Highest</TableHead>
                   <TableHead className="text-right">Lowest</TableHead>
                   <TableHead className="text-right">Average</TableHead>
-                  <TableHead className="w-[60px]" />
+                  <TableHead className="w-15" />
                 </TableRow>
               </TableHeader>
 
