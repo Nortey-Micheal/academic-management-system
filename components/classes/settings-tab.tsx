@@ -1,19 +1,43 @@
 'use client'
 
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { useMemo, useState } from 'react'
+import { AlertCircle, Archive, Loader2, Save, Trash2, Users } from 'lucide-react'
+import { toast } from 'sonner'
+import { useSelector } from 'react-redux'
+
+import { StoreState } from '@/lib/store'
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
-import { AlertCircle, Trash2, Archive } from 'lucide-react'
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 interface ClassData {
+  id: string
   name: string
   academicYear: string
+  currentTerm: number
   capacity: number
   enrollment: number
   teacher: string
@@ -22,214 +46,332 @@ interface ClassData {
 }
 
 export function SettingsTab({ classData }: { classData: ClassData }) {
+  const userId = useSelector((state: StoreState) => state.user.id)
+
+  const [loading, setLoading] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+
   const [formData, setFormData] = useState({
     name: classData.name,
-    teacher: classData.teacher,
     level: classData.level,
     capacity: classData.capacity.toString(),
   })
 
-  const handleSaveChanges = () => {
-    // Handle save logic here
-    setIsEditing(false)
+  const capacityPercentage = useMemo(() => {
+    if (!classData.capacity) return 0
+
+    return Math.round((classData.enrollment / classData.capacity) * 100)
+  }, [classData])
+
+  const handleSave = async () => {
+    try {
+      setLoading(true)
+
+      const response = await fetch(`/api/classes/${classData.id}/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          className: formData.name,
+          level: formData.level,
+          capacity: Number(formData.capacity),
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) throw new Error(data.error || 'Failed to update class')
+
+      toast.success('Class updated successfully')
+
+      setIsEditing(false)
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update class')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleArchive = async () => {
+    try {
+      setLoading(true)
+
+      const response = await fetch(`/api/classes/${classData.id}/archive`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) throw new Error(data.error || 'Failed to archive class')
+
+      toast.success('Class archived successfully')
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to archive class')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    try {
+      setLoading(true)
+
+      const response = await fetch(`/api/classes/${classData.id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) throw new Error(data.error || 'Failed to delete class')
+
+      toast.success('Class deleted successfully')
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete class')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className="space-y-6">
-      {/* Basic Information */}
-      <Card>
+
+      <Card className="rounded-2xl">
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div>
               <CardTitle className="text-base">Class Information</CardTitle>
-              <CardDescription>Edit basic class details</CardDescription>
+              <CardDescription>Manage class settings and information</CardDescription>
             </div>
-            <Button
-              variant={isEditing ? 'default' : 'outline'}
-              onClick={() => setIsEditing(!isEditing)}
-              size="sm"
-            >
+
+            <Button variant={isEditing ? 'default' : 'outline'} size="sm" onClick={() => setIsEditing(!isEditing)}>
               {isEditing ? 'Cancel' : 'Edit'}
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+
+        <CardContent className="space-y-6">
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+            <div className="rounded-xl border bg-muted/30 p-4">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" />
+                <p className="text-sm font-medium">Enrollment</p>
+              </div>
+
+              <p className="text-2xl font-bold mt-2">
+                {classData.enrollment}/{classData.capacity}
+              </p>
+
+              <p className="text-xs text-muted-foreground mt-1">
+                {capacityPercentage}% capacity used
+              </p>
+            </div>
+
+            <div className="rounded-xl border bg-muted/30 p-4">
+              <p className="text-sm font-medium">Academic Year</p>
+
+              <p className="text-2xl font-bold mt-2">
+                {classData.academicYear}
+              </p>
+
+              <p className="text-xs text-muted-foreground mt-1">
+                Active academic year
+              </p>
+            </div>
+
+            <div className="rounded-xl border bg-muted/30 p-4">
+              <p className="text-sm font-medium">Current Term</p>
+
+              <p className="text-2xl font-bold mt-2">
+                Term {classData.currentTerm}
+              </p>
+
+              <p className="text-xs text-muted-foreground mt-1">
+                Active school term
+              </p>
+            </div>
+
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
             <div>
-              <Label htmlFor="class-name">Class Name</Label>
+              <Label htmlFor="name">Class Name</Label>
+
               <Input
-                id="class-name"
+                id="name"
+                className="mt-1"
+                disabled={!isEditing}
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                disabled={!isEditing}
-                className="mt-1"
               />
             </div>
+
             <div>
               <Label htmlFor="level">Level</Label>
-              <Select value={formData.level} disabled={!isEditing}>
+
+              <Select
+                disabled={!isEditing}
+                value={formData.level}
+                onValueChange={(value) => setFormData({ ...formData, level: value })}
+              >
                 <SelectTrigger id="level" className="mt-1">
                   <SelectValue />
                 </SelectTrigger>
+
                 <SelectContent>
                   <SelectItem value="Lower Primary">Lower Primary</SelectItem>
                   <SelectItem value="Upper Primary">Upper Primary</SelectItem>
                   <SelectItem value="JHS">JHS</SelectItem>
+                  <SelectItem value="SHS">SHS</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
             <div>
               <Label htmlFor="teacher">Class Teacher</Label>
-              <Input
-                id="teacher"
-                value={formData.teacher}
-                onChange={(e) => setFormData({ ...formData, teacher: e.target.value })}
-                disabled={!isEditing}
-                className="mt-1"
-              />
+
+              <Input id="teacher" className="mt-1" disabled value={classData.teacher} />
             </div>
+
             <div>
-              <Label htmlFor="capacity">Class Capacity</Label>
+              <Label htmlFor="capacity">Capacity</Label>
+
               <Input
                 id="capacity"
                 type="number"
+                className="mt-1"
+                disabled={!isEditing}
                 value={formData.capacity}
                 onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                disabled={!isEditing}
-                className="mt-1"
               />
             </div>
+
           </div>
-          <div className="flex gap-2 pt-2">
-            <p className="text-xs text-muted-foreground">
-              Academic Year: <span className="font-semibold">{classData.academicYear}</span>
-            </p>
+
+          <div className="flex items-center justify-between gap-4 border-t pt-4">
+
+            <Badge variant={classData.status === 'active' ? 'default' : 'secondary'}>
+              {classData.status.charAt(0).toUpperCase() + classData.status.slice(1)}
+            </Badge>
+
+            {isEditing && (
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
+                  Cancel
+                </Button>
+
+                <Button size="sm" disabled={loading} onClick={handleSave}>
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  Save Changes
+                </Button>
+              </div>
+            )}
+
           </div>
-          {isEditing && (
-            <div className="flex gap-2 pt-4 border-t">
-              <Button onClick={handleSaveChanges} size="sm">
-                Save Changes
-              </Button>
-              <Button onClick={() => setIsEditing(false)} variant="outline" size="sm">
-                Cancel
-              </Button>
-            </div>
-          )}
+
         </CardContent>
       </Card>
 
-      {/* Class Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Class Status</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Current Status</p>
-              <p className="text-sm text-muted-foreground">Manage class lifecycle</p>
-            </div>
-            <Badge variant="default">{classData.status.charAt(0).toUpperCase() + classData.status.slice(1)}</Badge>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Promotion Settings */}
-      <Card className="border-blue-200 bg-blue-50">
-        <CardHeader>
-          <CardTitle className="text-base text-blue-900">Promote Class</CardTitle>
-          <CardDescription className="text-blue-700">
-            Move students to the next level and archive this class
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-100">
-                Promote Class
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Promote Class?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action will promote all students to the next level and create a record for this term. This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogAction>Promote</AlertDialogAction>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-            </AlertDialogContent>
-          </AlertDialog>
-        </CardContent>
-      </Card>
-
-      {/* Archive Settings */}
-      <Card className="border-amber-200 bg-amber-50">
+      <Card className="border-amber-200 bg-amber-50 rounded-2xl">
         <CardHeader>
           <CardTitle className="text-base text-amber-900 flex items-center gap-2">
             <Archive className="h-4 w-4" />
             Archive Class
           </CardTitle>
+
           <CardDescription className="text-amber-700">
-            Archive this class without deleting data. Archived classes won&apos;t appear in active lists.
+            Archived classes remain accessible but hidden from active lists.
           </CardDescription>
         </CardHeader>
+
         <CardContent>
           <AlertDialog>
+
             <AlertDialogTrigger asChild>
               <Button variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-100">
                 Archive Class
               </Button>
             </AlertDialogTrigger>
+
             <AlertDialogContent>
+
               <AlertDialogHeader>
-                <AlertDialogTitle>Archive Class?</AlertDialogTitle>
+                <AlertDialogTitle>Archive this class?</AlertDialogTitle>
+
                 <AlertDialogDescription>
-                  Archiving will hide this class from active lists but preserve all data. You can restore it later.
+                  Student records, attendance, and assessments will remain available.
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <AlertDialogAction>Archive</AlertDialogAction>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                <AlertDialogAction onClick={handleArchive}>
+                  Archive
+                </AlertDialogAction>
+              </AlertDialogFooter>
+
             </AlertDialogContent>
+
           </AlertDialog>
         </CardContent>
       </Card>
 
-      {/* Danger Zone */}
-      <Card className="border-red-200 bg-red-50">
+      <Card className="border-red-200 bg-red-50 rounded-2xl">
         <CardHeader>
           <CardTitle className="text-base text-red-900 flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
             Danger Zone
           </CardTitle>
+
           <CardDescription className="text-red-700">
-            Irreversible and destructive actions
+            Permanently delete this class and associated records.
           </CardDescription>
         </CardHeader>
+
         <CardContent>
           <AlertDialog>
+
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="gap-2">
                 <Trash2 className="h-4 w-4" />
                 Delete Class
               </Button>
             </AlertDialogTrigger>
+
             <AlertDialogContent>
+
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete Class?</AlertDialogTitle>
+                <AlertDialogTitle>Delete class permanently?</AlertDialogTitle>
+
                 <AlertDialogDescription>
-                  This will permanently delete this class and all associated data including student records, assessments, and attendance. This action cannot be undone.
+                  This action cannot be undone and may remove all related data.
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                Delete
-              </AlertDialogAction>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+
             </AlertDialogContent>
+
           </AlertDialog>
         </CardContent>
       </Card>
+
     </div>
   )
 }

@@ -49,6 +49,7 @@ interface ClassDetail {
   academicYear: string
   capacity: number
   currentEnrollment: number
+  currentTerm: number
   level: string
   classTeacher?: {
     id: string

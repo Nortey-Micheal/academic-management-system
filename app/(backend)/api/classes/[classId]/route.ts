@@ -33,6 +33,14 @@ export async function GET(
       },
     })
 
+    const currentTerm = await prisma.term.findFirst({
+      where: {
+        isActive: true
+      },
+    })
+
+    console.log({currentTerm})
+
     if (!classData) {
       return NextResponse.json(
         {
@@ -45,7 +53,7 @@ export async function GET(
     }
 
     return NextResponse.json({
-      class: classData,
+      class: {...classData,currentTerm:currentTerm?.termNumber},
     })
   } catch (error) {
     console.error(error)
