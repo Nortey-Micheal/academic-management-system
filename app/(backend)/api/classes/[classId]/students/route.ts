@@ -1,12 +1,23 @@
+import { Prisma } from '@/lib/generated/prisma/client'
 import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
-import { Prisma } from '@/lib/generated/prisma/client'
 
-type StudentWithUser = Prisma.StudentGetPayload<{
-  include: {
-    user: true
-  }
-}>
+export type StudentEnrollmentWithStudent =
+  Prisma.StudentEnrollmentGetPayload<{
+    include: {
+      student: {
+        include: {
+          user: {
+            select: {
+              firstName: true
+              lastName: true
+              status: true
+            }
+          }
+        }
+      }
+    }
+  }>
 
 export async function GET(
   request: NextRequest,
@@ -19,10 +30,7 @@ export async function GET(
   try {
     const { classId } = await params
 
-    const userId =
-      request.nextUrl.searchParams.get(
-        'userId'
-      )
+    const userId = request.nextUrl.searchParams.get('userId')
 
     if (!userId) {
       return NextResponse.json(
@@ -33,68 +41,72 @@ export async function GET(
 
     // VERIFY USER
     const user = await prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-      select: {
-        role: true,
-      },
+      where: { id: userId },
+      select: { role: true },
     })
 
-    if (
-      !user ||
-      !['ADMIN', 'HEADTEACHER'].includes(
-        user.role
-      )
-    ) {
+    if (!user || !['ADMIN', 'HEADTEACHER'].includes(user.role)) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 403 }
       )
     }
 
-    // FETCH STUDENTS
-    const students = await prisma.student.findMany({
-        where: {
-          classId,
-        },
+    // GET ACTIVE ACADEMIC YEAR
+    const academicYear = await prisma.academicYear.findFirst({
+      where: { isActive: true },
+    })
 
-        include: {
-          user: {
-            select: {
-              firstName: true,
-              lastName: true,
-              status: true,
-            },
-          },
-        },
+    if (!academicYear) {
+      return NextResponse.json(
+        { error: 'No active academic year' },
+        { status: 400 }
+      )
+    }
 
-        orderBy: [
-          {
+    // FETCH STUDENTS VIA ENROLLMENTS (CORRECT WAY)
+    const enrollments = await prisma.studentEnrollment.findMany({
+      where: {
+        classId,
+        academicYearId: academicYear.id,
+        status: 'ACTIVE',
+      },
+      include: {
+        student: {
+          include: {
             user: {
-              firstName: 'asc',
+              select: {
+                firstName: true,
+                lastName: true,
+                status: true,
+              },
             },
           },
-        ],
-    }) as StudentWithUser[]
+        },
+      },
+      orderBy: {
+        student: {
+          user: {
+            firstName: 'asc',
+          },
+        },
+      },
+    }) as StudentEnrollmentWithStudent[]
 
-    const formattedStudents =
-      students.map((student) => ({
-        id: student.id,
+    const formattedStudents = enrollments.map((enrollment) => ({
+      id: enrollment.student.id,
 
-        name: `${student.user.lastName} ${student.user.firstName}`,
+      name: `${enrollment.student.user.lastName} ${enrollment.student.user.firstName}`,
 
-        admissionNo:
-          student.studentId,
+      admissionNo: enrollment.student.studentId,
 
-        gender: student.gender,
+      gender: enrollment.student.gender,
 
-        status:
-          student.user.status ===
-          'active'
-            ? 'Active'
-            : 'Inactive',
-      }))
+      status:
+        enrollment.student.user.status === 'active'
+          ? 'Active'
+          : 'Inactive',
+    }))
 
     return NextResponse.json({
       students: formattedStudents,
@@ -103,10 +115,7 @@ export async function GET(
     console.error(error)
 
     return NextResponse.json(
-      {
-        error:
-          'Failed to fetch students',
-      },
+      { error: 'Failed to fetch students' },
       { status: 500 }
     )
   }

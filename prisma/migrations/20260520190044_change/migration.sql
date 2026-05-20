@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Class" ALTER COLUMN "grade" SET DATA TYPE TEXT;

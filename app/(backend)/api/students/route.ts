@@ -85,73 +85,115 @@ export async function GET(request: NextRequest) {
 // ---------------------
 // POST: Create a new student
 // ---------------------
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const parsedData = createStudentSchema.parse(body);
+    const body = await request.json()
 
-    // 3️⃣ Auto-generate random password
-    const plainPassword = crypto
-      .getRandomValues
-      .toString(); // 8 characters
+    const parsedData = createStudentSchema.parse(body)
+
+    const plainPassword = Math.random().toString(36).slice(-8)
 
     const admissionDate = parsedData.admissionDate
       ? new Date(parsedData.admissionDate)
-      : new Date();
+      : new Date()
+
+    const existingClass = await prisma.class.findUnique({
+      where: {
+        id: parsedData.classId,
+      },
+      select: {
+        id: true,
+        currentEnrollment: true,
+        capacity: true,
+      },
+    })
+
+    if (!existingClass) {
+      return NextResponse.json(
+        { error: 'Class not found' },
+        { status: 404 }
+      )
+    }
+
+    if (existingClass.currentEnrollment >= existingClass.capacity) {
+      return NextResponse.json(
+        { error: 'Class capacity reached' },
+        { status: 400 }
+      )
+    }
 
     const result = await prisma.$transaction(async (tx) => {
 
-      // 1️⃣ Generate Student ID
-      const count = await tx.student.count();
-      const studentId = `S${String(count + 1).padStart(4, "0")}`;
+      const count = await tx.student.count()
 
+      const studentId = `S${String(count + 1).padStart(4, '0')}`
 
-      // 2️⃣ Auto-generate email
-      const email = `${studentId.toLowerCase()}@school.edu`;
+      const email = `${studentId.toLowerCase()}@school.edu`
 
-      const hashedPassword = await bcrypt.hash(plainPassword, 10);
+      const hashedPassword = await bcrypt.hash(plainPassword, 10)
 
-      // 4️⃣ Create User
+      const activeAcademicYear = await tx.academicYear.findFirst({
+        where: {
+          isActive: true,
+        },
+      })
+
+      if (!activeAcademicYear) {
+        return NextResponse.json(
+          { error: 'No active academic year found' },
+          { status: 400 }
+        )
+      }
+
       const user = await tx.user.create({
         data: {
           email,
           firstName: parsedData.firstName,
           lastName: parsedData.lastName,
           password: hashedPassword,
-          role: "STUDENT",
-          status: "active",
+          role: 'STUDENT',
+          status: 'active',
         },
-      });
+      })
 
-      // 5️⃣ Create Student Profile
       const student = await tx.student.create({
         data: {
           userId: user.id,
           studentId,
           dateOfBirth: new Date(parsedData.dateOfBirth),
           gender: parsedData.gender,
-          classId: parsedData.classId,
           guardianName: parsedData.guardianName,
           guardianPhone: parsedData.guardianPhone,
-          guardianEmail: parsedData.guardianEmail || "",
+          guardianEmail: parsedData.guardianEmail || '',
           address: parsedData.address,
           admissionDate,
         },
         include: {
           user: true,
-          class: true,
         },
-      });
+      })
 
-      // 6️⃣ Update Class Enrollment
+      await tx.studentEnrollment.create({
+        data: {
+          studentId: student.id,
+          classId: parsedData.classId,
+          academicYearId: activeAcademicYear.id,
+          isCurrent: true,
+          status: "ACTIVE"
+        },
+      })
+
       await tx.class.update({
-        where: { id: parsedData.classId },
+        where: {
+          id: parsedData.classId,
+        },
         data: {
           currentEnrollment: {
             increment: 1,
           },
         },
-      });
+      })
 
       return {
         student,
@@ -159,24 +201,24 @@ export async function POST(request: NextRequest) {
           email,
           password: plainPassword,
         },
-      };
-    });
+      }
+    })
 
-    return NextResponse.json(result, { status: 201 });
+    return NextResponse.json(result, { status: 201 })
 
   } catch (error: any) {
-    console.error("Error creating student:", error);
+    console.error('Error creating student:', error)
 
-    if (error.name === "ZodError") {
+    if (error.name === 'ZodError') {
       return NextResponse.json(
         { error: error.errors },
         { status: 400 }
-      );
+      )
     }
 
     return NextResponse.json(
-      { error: "Failed to create student" },
+      { error: 'Failed to create student' },
       { status: 500 }
-    );
+    )
   }
 }

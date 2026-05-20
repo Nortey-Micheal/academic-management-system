@@ -3,9 +3,10 @@ model AcademicYear {
   year     String  @unique
   isActive Boolean @default(false)
 
-  terms      Term[]
-  holiday    Holiday[]
-  attendance Attendance[]
+  terms              Term[]
+  holiday            Holiday[]
+  attendance         Attendance[]
+  studentEnrollments StudentEnrollment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

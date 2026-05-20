@@ -39,8 +39,6 @@ export async function GET(
       },
     })
 
-    console.log({currentTerm})
-
     if (!classData) {
       return NextResponse.json(
         {

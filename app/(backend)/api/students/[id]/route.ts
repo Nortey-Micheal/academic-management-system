@@ -72,27 +72,50 @@ export async function PUT(
       /**
        * Handle class enrollment changes
        */
-      if (existingStudent.classId !== parsedData.classId) {
 
-        // decrement old class
+      const currentEnrollment = await tx.studentEnrollment.findFirst({
+        where: {
+          studentId: id,
+          isCurrent: true,
+        },
+      })
+
+
+      if (
+        currentEnrollment &&
+        currentEnrollment.classId !== parsedData.classId
+      ) {
+
         await tx.class.update({
-          where: { id: existingStudent.classId },
+          where: {
+            id: currentEnrollment.classId,
+          },
           data: {
             currentEnrollment: {
               decrement: 1,
             },
           },
-        });
+        })
 
-        // increment new class
         await tx.class.update({
-          where: { id: parsedData.classId },
+          where: {
+            id: parsedData.classId,
+          },
           data: {
             currentEnrollment: {
               increment: 1,
             },
           },
-        });
+        })
+
+        await tx.studentEnrollment.update({
+          where: {
+            id: currentEnrollment.id,
+          },
+          data: {
+            classId: parsedData.classId,
+          },
+        })
       }
 
       /**
@@ -116,7 +139,6 @@ export async function PUT(
         data: {
           dateOfBirth: new Date(parsedData.dateOfBirth),
           gender: parsedData.gender,
-          classId: parsedData.classId,
           guardianName: parsedData.guardianName,
           guardianPhone: parsedData.guardianPhone,
           guardianEmail: parsedData.guardianEmail || "",
@@ -127,7 +149,6 @@ export async function PUT(
         },
         include: {
           user: true,
-          class: true,
         },
       });
     });
@@ -232,7 +253,6 @@ export async function PATCH(
       },
       include: {
         user: true,
-        class: true,
       },
     });
 
@@ -274,16 +294,26 @@ export async function DELETE(
       /**
        * Decrement class enrollment
        */
-      await tx.class.update({
-        where: {
-          id: existingStudent.classId,
-        },
-        data: {
-          currentEnrollment: {
-            decrement: 1,
+
+      const currentEnrollment =
+        await prisma.studentEnrollment.findFirst({
+          where: {
+            studentId: id,
+            isCurrent: true,
           },
-        },
-      });
+        })
+      if (currentEnrollment) {
+        await tx.class.update({
+          where: {
+            id: currentEnrollment.classId,
+          },
+          data: {
+            currentEnrollment: {
+              decrement: 1,
+            },
+          },
+        })
+      }
 
       /**
        * Delete student

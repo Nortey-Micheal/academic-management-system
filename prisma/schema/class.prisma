@@ -3,9 +3,8 @@ model Class {
 
   // Academic Structure
   level        Level
-  grade        Int
+  grade        String
   section      Section
-  academicYear String
 
   // Capacity
   capacity          Int @default(30)
@@ -16,16 +15,15 @@ model Class {
   classTeacher   Teacher? @relation("ClassTeacher", fields: [classTeacherId], references: [id])
 
   // Relations
-  students    Student[]
   subjects    ClassSubject[]
   assessments TermAssessment[]
   attendances Attendance[]
+  enrollments StudentEnrollment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([level, grade, section, academicYear])
-  @@index([academicYear])
+  @@unique([level, grade, section])
   @@index([level, grade])
 }
 

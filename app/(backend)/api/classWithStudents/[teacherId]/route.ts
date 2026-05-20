@@ -1,14 +1,76 @@
-import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { Prisma } from "@/lib/generated/prisma/client"
+import { prisma } from "@/lib/prisma"
+import { NextResponse } from "next/server"
+
+export type TeacherClassSubjectPayload =
+  Prisma.TeacherClassSubjectGetPayload<{
+    include: {
+      classSubject: {
+        include: {
+          class: {
+            include: {
+              enrollments: {
+                include: {
+                  student: true
+                }
+              },
+              subjects:true
+            }
+          }
+          subject: true
+        }
+      },
+    }
+  }>
+
+export type FormTeacherClass = Prisma.ClassGetPayload<{
+  include: {
+    enrollments: {
+      where: {
+        academicYearId: string
+        status: "ACTIVE"
+      }
+      include: {
+        student: {
+          include: {
+            user: {
+              select: {
+                id: true
+                firstName: true
+                lastName: true
+                status: true
+              }
+            }
+          }
+        }
+      }
+    }
+    subjects: {
+      include: {
+        subject: true
+      }
+    }
+  }
+}>
 
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ teacherId: string }> }
 ) {
   try {
-    const teacherId = (await params).teacherId;
+    const teacherId = (await params).teacherId
 
-    // 1️⃣ Get all class-teaching links for this teacher
+    const academicYear = await prisma.academicYear.findFirst({
+      where: { isActive: true }
+    })
+
+    if (!academicYear) {
+      return NextResponse.json(
+        { error: "No active academic year" },
+        { status: 400 }
+      )
+    }
+
     const teacherClassSubjects = await prisma.teacherClassSubject.findMany({
       where: { teacherId },
       include: {
@@ -16,109 +78,115 @@ export async function GET(
           include: {
             class: {
               include: {
-                students: {
-                  select: {
-                    id: true,
-                    gender: true,
-                    user: {
-                      select: {
-                        firstName: true,
-                        lastName: true,
-                        status: true,
-                      },
-                    },
-                    studentId: true,
-                    guardianName: true,
-                    guardianPhone: true,
+                enrollments: {
+                  where: {
+                    academicYearId: academicYear.id,
+                    status: "ACTIVE"
                   },
-                },
-              },
+                  include: {
+                    student: {
+                      include: {
+                        user: {
+                          select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            status: true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             },
-            subject: true,
-          },
-        },
-      },
-    });
+            subject: true
+          }
+        }
+      }
+    }) as TeacherClassSubjectPayload[]
 
-    // 2️⃣ Include classes where teacher is form/class teacher
     const formTeacherClasses = await prisma.class.findMany({
       where: { classTeacherId: teacherId },
       include: {
-        students: {
-          select: {
-            id: true,
-            gender: true,
-            user: {
-              select: {
-                firstName: true,
-                lastName: true,
-              },
-            },
+        enrollments: {
+          where: {
+            academicYearId: academicYear.id,
+            status: "ACTIVE"
           },
+          include: {
+            student: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    status: true
+                  }
+                }
+              }
+            }
+          }
         },
         subjects: {
           include: {
-            subject: true,
-          },
-        },
-      },
-    });
+            subject: true
+          }
+        }
+      }
+    }) as FormTeacherClass[]
 
-    // 3️⃣ Transform TeacherClassSubject to classes array
-    const subjectClassesMap = new Map<string, any>();
+    const classMap = new Map<string, any>()
+
     for (const tcs of teacherClassSubjects) {
-      const cls = tcs.classSubject.class;
-      if (!subjectClassesMap.has(cls.id)) {
-        subjectClassesMap.set(cls.id, {
+      const cls = tcs.classSubject.class
+
+      if (!classMap.has(cls.id)) {
+        classMap.set(cls.id, {
           ...cls,
           subjects: [],
-        });
+          students: cls.enrollments.map(e => e.student)
+        })
       }
-      subjectClassesMap.get(cls.id).subjects.push(tcs.classSubject.subject);
+
+      classMap.get(cls.id).subjects.push(tcs.classSubject.subject)
     }
 
-    // Merge form teacher classes (avoid duplicates)
     for (const cls of formTeacherClasses) {
-      const transformedSubjects = cls.subjects.map(
-        (item) => item.subject
-      );
+      const subjects = cls.subjects.map(s => s.subject)
 
-      if (!subjectClassesMap.has(cls.id)) {
-        subjectClassesMap.set(cls.id, {
+      if (!classMap.has(cls.id)) {
+        classMap.set(cls.id, {
           ...cls,
-          subjects: transformedSubjects,
-        });
+          subjects,
+          students: cls.enrollments.map(e => e.student)
+        })
       } else {
-        const existingSubjects =
-          subjectClassesMap.get(cls.id).subjects;
+        const existing = classMap.get(cls.id)
 
-        transformedSubjects.forEach((subject) => {
-          if (
-            !existingSubjects.some(
-              (s: { id: string }) => s.id === subject.id
-            )
-          ) {
-            existingSubjects.push(subject);
+        subjects.forEach(subject => {
+          if (!existing.subjects.some((s: any) => s.id === subject.id)) {
+            existing.subjects.push(subject)
           }
-        });
+        })
+
+        existing.students = cls.enrollments.map(e => e.student)
       }
     }
 
-    // Convert map to array and sort by className
-    const classes = Array.from(subjectClassesMap.values()).sort((a, b) => {
-      if (a.grade !== b.grade) {
-        return a.grade - b.grade
-      }
-
+    const classes = Array.from(classMap.values()).sort((a, b) => {
+      if (a.grade !== b.grade) return a.grade - b.grade
       return a.section.localeCompare(b.section)
-    });
+    })
 
-    return NextResponse.json(classes);
-  } catch (error) {``
-    console.error(error);
+    return NextResponse.json(classes)
+  } catch (error) {
+    console.error(error)
+
     return NextResponse.json(
-      { error: "Failed to fetch classes, subjects, and students" },
+      { error: "Failed to fetch classes" },
       { status: 500 }
-    );
+    )
   }
 }
