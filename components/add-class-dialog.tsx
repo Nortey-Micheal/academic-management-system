@@ -216,12 +216,12 @@ export function AddClassDialog({
 
         body: JSON.stringify({
           level: formData.level,
-          grade: Number(formData.grade),
+          grade: formData.grade,
           section: formData.section,
           academicYear: formData.academicYear,
           capacity: Number(formData.capacity),
           classTeacherId:
-            formData.classTeacherId || null,
+            formData.classTeacherId || "",
         }),
       })
 
@@ -387,9 +387,9 @@ export function AddClassDialog({
                 <Label>Grade</Label>
 
                 <Input
-                  type="number"
+                  type="text"
                   min={1}
-                  placeholder="Enter grade"
+                  placeholder="Enter grade. 1 or Kg1"
                   value={formData.grade}
                   onChange={(e) =>
                     handleChange(

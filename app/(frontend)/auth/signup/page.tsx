@@ -14,12 +14,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Class } from "@/lib/generated/prisma/client";
+import { getSchoolConfig } from "@/config";
 
-type SubjectType = {
-  id: string;
-  subjectName: string;
-};
+const school = getSchoolConfig()
 
 export default function SignupPage() {
   const router = useRouter();
@@ -81,7 +78,7 @@ export default function SignupPage() {
   const passwordStrength = formData.password.length >= 8;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-muted/20 to-background p-4">
+    <div className="min-h-screen mb-0 pb-25 flex items-center justify-center bg-linear-to-br from-background via-muted/20 to-background p-4">
       <Card className="w-full max-w-lg">
         <CardHeader className="space-y-1">
           <div className="flex justify-center">
@@ -89,13 +86,13 @@ export default function SignupPage() {
               alt="school logo"
               width={150}
               height={150}
-              src="/logo.webp"
+              src={school.branding.logo}
               className="rounded-xl"
             />
           </div>
           <CardTitle className="text-2xl text-center">Create Account</CardTitle>
           <CardDescription className="text-center">
-            Sign up for Mount Olives School
+            Sign up for {school.name}
           </CardDescription>
         </CardHeader>
         <CardContent>

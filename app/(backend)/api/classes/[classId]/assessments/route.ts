@@ -85,11 +85,11 @@ export async function GET(
       const key = `${assessment.subjectId}-${assessment.term}-${assessment.year}`
 
       const total =
-        assessment.test1 +
+        ((assessment.test1 +
         assessment.groupWork +
         assessment.test2 +
-        assessment.project +
-        assessment.exam
+        assessment.project) / 2) +
+        (assessment.exam / 2)
 
       if (!acc[key]) {
         acc[key] = {
@@ -146,11 +146,11 @@ export async function GET(
 
     const allScores = assessments.map((assessment) => {
       const total =
-        assessment.test1 +
+        ((assessment.test1 +
         assessment.groupWork +
         assessment.test2 +
-        assessment.project +
-        assessment.exam
+        assessment.project) / 2) +
+        (assessment.exam / 2)
 
       return {
         score: total,

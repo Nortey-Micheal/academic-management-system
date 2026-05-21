@@ -17,7 +17,9 @@ import type {
 import { Subject } from '@/lib/generated/prisma/client';
 
 interface Props {
-  students: StudentWithRelations[];
+  students: {
+    student: StudentWithRelations
+  }[];
   selectedSubject: Subject;
   assessments: Record<string, Assessment>;
   onAssessmentChange: (
@@ -48,13 +50,15 @@ export default function AssessmentGrid({
 
   const weightsTotal = getWeightsTotal(weights);
 
+  console.log({students})
+
   const weightsValid = weightsTotal === 100;
 
   const boys =
-    students?.filter((s) => s.gender === 'male') || [];
+    students?.filter((s) => s.student.gender === 'male') || [];
 
   const girls =
-    students?.filter((s) => s.gender === 'female') || [];
+    students?.filter((s) => s.student.gender === 'female') || [];
 
   // ------------------------------------------------
   // GET OR CREATE
@@ -466,7 +470,7 @@ export default function AssessmentGrid({
 
           {boys.map((student) => {
             rowNum++;
-            return renderStudentRow(student, rowNum);
+            return renderStudentRow(student.student, rowNum);
           })}
 
           {/* GIRLS */}
@@ -475,7 +479,7 @@ export default function AssessmentGrid({
 
           {girls.map((student) => {
             rowNum++;
-            return renderStudentRow(student, rowNum);
+            return renderStudentRow(student.student, rowNum);
           })}
         </tbody>
       </table>

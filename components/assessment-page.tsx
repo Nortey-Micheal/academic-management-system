@@ -220,6 +220,8 @@ export default function AssessmentPage() {
     }, 2000);
   };
 
+  console.log(selectedClass)
+
   // ------------------------------------------------
   // SELECTORS
   // ------------------------------------------------
@@ -282,13 +284,13 @@ export default function AssessmentPage() {
   // STATS
   // ------------------------------------------------
   const boys =
-    selectedClass?.students?.filter(
-      (s) => s.gender === 'male'
+    selectedClass?.enrollments?.filter(
+      (s) => s.student.gender === 'male'
     ) ?? [];
 
   const girls =
-    selectedClass?.students?.filter(
-      (s) => s.gender === 'female'
+    selectedClass?.enrollments?.filter(
+      (s) => s.student.gender === 'female'
     ) ?? [];
 
   useEffect(() => {
@@ -370,7 +372,7 @@ export default function AssessmentPage() {
           <div className="flex flex-wrap items-center gap-5 text-xs">
             <span>
               <span className="font-bold">NO. ON ROLL:</span>{' '}
-              {selectedClass?.students?.length || 0}
+              {selectedClass?.enrollments.length || 0}
             </span>
 
             <span>
@@ -413,7 +415,7 @@ export default function AssessmentPage() {
         {/* GRID */}
         {/* -------------------------------------- */}
         <AssessmentGrid
-          students={selectedClass?.students || []}
+          students={selectedClass?.enrollments || []}
           selectedSubject={selectedSubject!}
           assessments={assessments}
           onAssessmentChange={handleAssessmentChange}

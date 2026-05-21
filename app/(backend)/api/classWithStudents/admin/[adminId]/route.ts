@@ -19,20 +19,24 @@ export async function GET(
 
     const classes = await prisma.class.findMany({
         include: {
-            students: {
+            enrollments: {
                 select: {
-                    id: true,
-                    gender: true,
-                    studentId: true,
-                    guardianName: true,
-                    guardianPhone: true,
-                    user: {
+                  student: {
                     select: {
-                        firstName: true,
-                        lastName: true,
-                        status: true,
-                    },
-                    },
+                      id: true,
+                      gender: true,
+                      studentId: true,
+                      guardianName: true,
+                      guardianPhone: true,
+                      user: {
+                        select: {
+                            firstName: true,
+                            lastName: true,
+                            status: true,
+                        },
+                      },
+                    }
+                  }
                 },
             },
             subjects: {

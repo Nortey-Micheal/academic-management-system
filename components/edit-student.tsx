@@ -1,34 +1,30 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { StudentWithRelations } from "@/lib/types"
-import { Class } from "@/lib/generated/prisma/client"
+import { Level, Section } from "@/lib/generated/prisma/client"
+import { ClassStudentRow } from "./students-table"
+
+type ClassWithEnrollments = {
+  id: string
+  level: Level
+  grade: string
+  section: Section
+  capacity: number
+  currentEnrollment: number
+}
 
 interface EditStudentDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  student: StudentWithRelations
-  classes: Class[]
+  student: ClassStudentRow
+  classes: ClassWithEnrollments[]
   onSuccess?: () => void
 }
 
@@ -55,40 +51,32 @@ export default function EditStudentDialog({
     admissionDate: "",
   })
 
-  /**
-   * Populate form when dialog opens
-   */
+  const currentEnrollment = student?.enrollments?.find(
+    (enrollment) => enrollment.isCurrent
+  )
+
   useEffect(() => {
-    if (student) {
-      setFormData({
-        firstName: student.user.firstName || "",
-        lastName: student.user.lastName || "",
-        dateOfBirth: student.dateOfBirth
-          ? new Date(student.dateOfBirth)
-              .toISOString()
-              .split("T")[0]
-          : "",
-        gender: student.gender || "",
-        classId: student.classId || "",
-        guardianName: student.guardianName || "",
-        guardianPhone: student.guardianPhone || "",
-        guardianEmail: student.guardianEmail || "",
-        address: student.address || "",
-        admissionDate: student.admissionDate
-          ? new Date(student.admissionDate)
-              .toISOString()
-              .split("T")[0]
-          : "",
-      })
-    }
+    if (!student) return
+
+    setFormData({
+      firstName: student.user.firstName || "",
+      lastName: student.user.lastName || "",
+      dateOfBirth: student.dateOfBirth
+        ? new Date(student.dateOfBirth).toISOString().split("T")[0]
+        : "",
+      gender: student.gender || "",
+      classId: currentEnrollment?.classId || "",
+      guardianName: student.guardianName || "",
+      guardianPhone: student.guardianPhone || "",
+      guardianEmail: student.guardianEmail || "",
+      address: student.address || "",
+      admissionDate: student.admissionDate
+        ? new Date(student.admissionDate).toISOString().split("T")[0]
+        : "",
+    })
   }, [student])
 
-  /**
-   * Handle input changes
-   */
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
 
     setFormData((prev) => ({
@@ -97,30 +85,22 @@ export default function EditStudentDialog({
     }))
   }
 
-  /**
-   * Submit update
-   */
   const handleSubmit = async () => {
     try {
       setLoading(true)
 
-      const res = await fetch(
-        `/api/students/${student.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      )
+      const response = await fetch(`/api/students/${student.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      })
 
-      const data = await res.json()
+      const data = await response.json()
 
-      if (!res.ok) {
-        toast.error(
-          data.error || "Failed to update student"
-        )
+      if (!response.ok) {
+        toast.error(data.error || "Failed to update student")
         return
       }
 
@@ -128,34 +108,29 @@ export default function EditStudentDialog({
 
       onOpenChange(false)
 
-      if (onSuccess) {
-        onSuccess()
-      }
+      if (onSuccess) onSuccess()
 
     } catch (error) {
       console.error(error)
-
       toast.error("Something went wrong")
     } finally {
       setLoading(false)
     }
   }
 
+  const formatClassName = (cls: ClassWithEnrollments) => {
+    return `${cls.level.replace(/_/g, " ")} - Grade ${cls.grade}${cls.section}`
+  }
+
   return (
-    <Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            Edit Student
-          </DialogTitle>
+          <DialogTitle>Edit Student</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-          {/* First Name */}
           <div className="space-y-2">
             <Label>First Name</Label>
 
@@ -166,7 +141,6 @@ export default function EditStudentDialog({
             />
           </div>
 
-          {/* Last Name */}
           <div className="space-y-2">
             <Label>Last Name</Label>
 
@@ -177,7 +151,6 @@ export default function EditStudentDialog({
             />
           </div>
 
-          {/* Date of Birth */}
           <div className="space-y-2">
             <Label>Date of Birth</Label>
 
@@ -189,7 +162,6 @@ export default function EditStudentDialog({
             />
           </div>
 
-          {/* Gender */}
           <div className="space-y-2">
             <Label>Gender</Label>
 
@@ -207,20 +179,14 @@ export default function EditStudentDialog({
               </SelectTrigger>
 
               <SelectContent>
-                <SelectItem value="male">
-                  Male
-                </SelectItem>
-
-                <SelectItem value="female">
-                  Female
-                </SelectItem>
+                <SelectItem value="male">Male</SelectItem>
+                <SelectItem value="female">Female</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {/* Class */}
           <div className="space-y-2">
-            <Label>Class</Label>
+            <Label>Class Assignment</Label>
 
             <Select
               value={formData.classId}
@@ -236,19 +202,19 @@ export default function EditStudentDialog({
               </SelectTrigger>
 
               <SelectContent>
-                {classes?.map((cls) => (
-                  <SelectItem
-                    key={cls.id}
-                    value={cls.id}
-                  >
-                    {`Basic ${cls.grade}`}
+                {classes.map((cls) => (
+                  <SelectItem key={cls.id} value={cls.id}>
+                    {formatClassName(cls)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+
+            <p className="text-xs text-muted-foreground">
+              Changing class updates the active enrollment automatically.
+            </p>
           </div>
 
-          {/* Guardian Name */}
           <div className="space-y-2">
             <Label>Guardian Name</Label>
 
@@ -259,7 +225,6 @@ export default function EditStudentDialog({
             />
           </div>
 
-          {/* Guardian Phone */}
           <div className="space-y-2">
             <Label>Guardian Phone</Label>
 
@@ -270,7 +235,6 @@ export default function EditStudentDialog({
             />
           </div>
 
-          {/* Guardian Email */}
           <div className="space-y-2">
             <Label>Guardian Email</Label>
 
@@ -282,7 +246,6 @@ export default function EditStudentDialog({
             />
           </div>
 
-          {/* Address */}
           <div className="space-y-2 md:col-span-2">
             <Label>Address</Label>
 
@@ -293,7 +256,6 @@ export default function EditStudentDialog({
             />
           </div>
 
-          {/* Admission Date */}
           <div className="space-y-2">
             <Label>Admission Date</Label>
 
@@ -319,9 +281,7 @@ export default function EditStudentDialog({
             onClick={handleSubmit}
             disabled={loading}
           >
-            {loading
-              ? "Updating..."
-              : "Update Student"}
+            {loading ? "Updating..." : "Update Student"}
           </Button>
         </div>
       </DialogContent>

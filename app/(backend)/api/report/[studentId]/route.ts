@@ -210,8 +210,8 @@ export async function GET(
         where: {
           studentId,
           classId,
-          termId: term.id,
-          academicYearId: academicYear.id
+          term: term.termNumber,
+          year: academicYear.year
         }
       })
 

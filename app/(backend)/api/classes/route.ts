@@ -46,7 +46,7 @@ export async function GET() {
           include: {
             student: {
               include: {
-                user: { select: { id: true, firstName: true, lastName: true } }
+                user: { select: { id: true, firstName: true, lastName: true, status: true } }
               }
             }
           }

@@ -5,7 +5,7 @@ import { format } from "date-fns"
 import { useSelector } from "react-redux"
 
 import { StoreState } from "@/lib/store"
-import { ClassWithStudents, StudentWithRelations } from "@/lib/types"
+import { ClassWithStudents, EnrollmentStudent, StudentWithRelations } from "@/lib/types"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -17,6 +17,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 
 import { CalendarIcon, Check, X, Clock, FileX } from "lucide-react"
 
+type AttendanceStatus = "present" | "absent" | "excused"
+
 export function AttendanceMarker() {
 
   const user = useSelector((state: StoreState) => state.user)
@@ -24,7 +26,7 @@ export function AttendanceMarker() {
   const isAdmin = user.role === "ADMIN"
 
   const [classes, setClasses] = useState<ClassWithStudents[]>([])
-  const [students, setStudents] = useState<StudentWithRelations[]>([])
+  const [students, setStudents] = useState<EnrollmentStudent[]>([])
   const [selectedClass, setSelectedClass] = useState("")
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
 
@@ -55,13 +57,17 @@ export function AttendanceMarker() {
     const selected = classes.find(c => c.id === selectedClass)
     if (!selected) return
 
-    const classStudents = selected.students || []
+    const classStudents: EnrollmentStudent[] =
+      selected.enrollments?.map((enrollment) => ({
+        ...enrollment.student,
+        classId: enrollment.classId,
+      })) ?? []
 
     // SET STUDENTS FIRST (ALWAYS)
     setStudents(classStudents)
 
     // DEFAULT ATTENDANCE
-    const defaultAttendance: Record<string,string> = {}
+    const defaultAttendance: Record<string, AttendanceStatus> = {}
 
     classStudents.forEach(student => {
       defaultAttendance[student.id] = "present"
@@ -225,7 +231,7 @@ export function AttendanceMarker() {
   /* -------------------------------- */
 
   const sortedStudents = [...students].sort((a, b) =>
-    a.user.lastName.localeCompare(b.user.lastName)
+    a.user?.lastName?.localeCompare(b.user?.lastName ?? "") ?? 0
   )
 
   const maleStudents = sortedStudents.filter(s => s.gender === 
@@ -257,7 +263,7 @@ export function AttendanceMarker() {
   /* RENDER LIST                      */
   /* -------------------------------- */
 
-  const renderStudentList = (list: StudentWithRelations[]) => (
+  const renderStudentList = (list: EnrollmentStudent[]) => (
 
     <div className="space-y-3">
 

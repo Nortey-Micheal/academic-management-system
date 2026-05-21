@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import ClassSelector from '@/components/ClassSelector';
 import ReportCard from '@/components/ReportCard';
-import { StudentReport, StudentWithRelations } from '@/lib/types';
+import { StudentReport } from '@/lib/types';
 
 export default function ReportCardGenerator() {
   // store just the selected student ID

@@ -1,4 +1,4 @@
-import { Level, Prisma, Section, Subject } from "./generated/prisma/client"
+import { EnrollmentStatus, Gender, Level, Prisma, Section, Subject, UserStatus } from "./generated/prisma/client"
 
 export interface SchoolConfig {
   schoolId: string;
@@ -27,27 +27,79 @@ export type FullUserType = Prisma.UserGetPayload<{
   }
 }>
 
-export type StudentWithRelations = Prisma.StudentGetPayload<{
-  include: {
-    user: true
-    class: true
-    grades: true
-    attendances: true
+export type StudentWithRelations = {
+  id: string
+  studentId: string
+  gender: Gender
+  guardianName: string
+  guardianPhone: string
+  guardianEmail: string
+  address: string
+  admissionDate: Date
+  dateOfBirth: Date
+
+  user: {
+    id: string
+    firstName: string
+    lastName: string
+    status: UserStatus
   }
-}>
+
+  enrollments: {
+    id: string
+    classId: string
+    isCurrent: boolean
+    status: EnrollmentStatus
+  }[]
+}
 
 export type ClassWithStudents = Prisma.ClassGetPayload<{
   include: {
-    students: {
+    classTeacher: true
+
+    subjects: {
       include: {
-        user: true
-        class: true
-        grades: true
-        attendances: true
+        subject: true
+      }
+    }
+
+    enrollments: {
+      where: {
+        isCurrent: true
+      }
+
+      include: {
+        student: {
+          select: {
+            id: true
+            studentId: true
+            dateOfBirth: true
+            gender: true
+            guardianName: true
+            guardianPhone: true
+            guardianEmail: true
+            address: true
+            admissionDate: true
+
+            user: {
+              select: {
+                id: true
+                firstName: true
+                lastName: true
+                status: true
+              }
+            }
+          }
+        }
       }
     }
   }
 }>
+
+export type EnrollmentStudent =
+  ClassWithStudents["enrollments"][number]["student"] & {
+    classId: string
+  }
 
 interface SubjectScore {
   name: string;
@@ -86,7 +138,9 @@ export type ClassWithStudentsAndSubjects = {
   classTeacherId: string | null
   createdAt: string
   updatedAt: string
-  students: StudentWithRelations[]
+  enrollments: {
+    student: StudentWithRelations
+  }[]
   subjects: Subject[]
 }
 

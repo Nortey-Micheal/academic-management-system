@@ -58,6 +58,7 @@ export function ClassesTable() {
 
   const [classes, setClasses] = useState<ClassItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [academicYear,setAcademicYear] = useState<string>('')
 
   // ------------------------------------------------
   // FETCH CLASSES
@@ -85,6 +86,17 @@ export function ClassesTable() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    const fetchAcademicYear = async () => {
+      const response = await fetch('/api/system/active-term')
+      const data = await response.json()
+
+      setAcademicYear(data.academicYear.year)
+    }
+
+    fetchAcademicYear()
+  },[])
 
   // ------------------------------------------------
   // SORTED CLASSES
@@ -235,7 +247,7 @@ export function ClassesTable() {
               </p>
 
               <h2 className="text-xl font-bold">
-                {classes[0]?.academicYear || "--"}
+                {academicYear}
               </h2>
             </div>
 
@@ -337,7 +349,7 @@ export function ClassesTable() {
 
                               <p className="text-sm text-muted-foreground">
                                 Academic Year:{" "}
-                                {classItem.academicYear}
+                                {academicYear}
                               </p>
                             </div>
 

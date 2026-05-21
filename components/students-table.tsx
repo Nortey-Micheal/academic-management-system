@@ -22,119 +22,160 @@ import {
 } from "@/components/ui/table"
 import { Search, Pencil, Trash2 } from "lucide-react"
 import { AddStudentDialog } from "@/components/add-student-dialog"
-import { StudentWithRelations } from "@/lib/types"
-import { Class } from "@/lib/generated/prisma/client"
 import { useSelector } from "react-redux"
 import { StoreState } from "@/lib/store"
 import { toast } from "sonner"
 import EditStudentDialog from "./edit-student"
+import { Prisma } from "@/lib/generated/prisma/client"
+import { StudentWithRelations } from "@/lib/types"
+
+type ClassWithEnrollments = Prisma.ClassGetPayload<{
+  include: {
+    classTeacher: {
+      include: {
+        user: {
+          select: {
+            id: true
+            firstName: true
+            lastName: true
+          }
+        }
+      }
+    }
+    subjects: {
+      include: {
+        subject: true
+      }
+    }
+    enrollments: {
+      include: {
+        student: {
+          include: {
+            user: {
+              select: {
+                id: true
+                firstName: true
+                lastName: true
+                status: true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}>
+
+export type ClassStudentRow = StudentWithRelations & {
+  classId: string
+}
 
 export function StudentsTable() {
-  const [students, setStudents] = useState<StudentWithRelations[]>([])
-  const [classes, setClasses] = useState<Class[]>([])
-  const [selectedClassId, setSelectedClassId] = useState<string>("")
+  const [classes, setClasses] = useState<ClassWithEnrollments[]>([])
+  const [selectedClassId, setSelectedClassId] = useState("")
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
-  const user = useSelector((state:StoreState) => state.user)
-  const [open,setOpen] = useState<boolean>(false)
-  const [student,setStudent] = useState<StudentWithRelations | null>(null)
+  const [open, setOpen] = useState(false)
+  const [student, setStudent] = useState<ClassStudentRow | null>(null)
+
+  const user = useSelector((state: StoreState) => state.user)
 
   useEffect(() => {
     if (!user?.role || user.role === "STUDENT") return
 
     if (user.role === "TEACHER") {
-      fetchDataForTeachers()
+      fetchTeacherData()
     } else {
-      fetchDataForNoneTeachers()
+      fetchAdminData()
     }
   }, [user])
 
-  const handleEdit = (student:StudentWithRelations) => {
-    setOpen(true)
-    setStudent(student)
-  }
-
-  const fetchDataForNoneTeachers = async () => {
+  const fetchAdminData = async () => {
     setLoading(true)
+
     try {
-      const [studentsRes, classesRes] = await Promise.all([
-        fetch("/api/students"),
-        fetch("/api/classes"),
-      ])
+      const response = await fetch("/api/classes")
+      const data = await response.json()
 
-      const [studentsData, classesData] = await Promise.all([
-        studentsRes.json(),
-        classesRes.json(),
-      ])
+      setClasses(data.classes || [])
 
-      setStudents(studentsData.students)
-      setClasses(classesData.classes)
-
-      // Auto select first class
-      if (classesData?.classes?.length > 0) {
-        setSelectedClassId(classesData.classes[0].id)
+      if (data.classes?.length > 0) {
+        setSelectedClassId(data.classes[0].id)
       }
     } catch (error) {
-      console.error("Error fetching data:", error)
+      console.error(error)
+      toast.error("Failed to fetch classes")
     } finally {
       setLoading(false)
     }
   }
 
-  const fetchDataForTeachers = async () => {
+  const fetchTeacherData = async () => {
     setLoading(true)
 
     try {
       const response = await fetch(`/api/classWithStudents/${user.teacherProfile?.id}`)
       const data = await response.json()
 
-      const classList = data.map((cls: any) => {
-        const { students, ...classInfo } = cls
-        return classInfo
-      })
+      setClasses(data || [])
 
-      const studentList = data.flatMap((cls: any) =>
-        cls.students.map((student: any) => ({
-          ...student,
-          classId: cls.id,
-        }))
-      )
-
-      setClasses(classList)
-      setStudents(studentList)
-
-      console.log({classList,studentList})
-
-      if (classList.length > 0) {
-        setSelectedClassId(classList[0].id)
+      if (data?.length > 0) {
+        setSelectedClassId(data[0].id)
       }
-
-    } catch (error: any) {
-      toast.error(error)
+    } catch (error) {
+      console.error(error)
+      toast.error("Failed to fetch teacher classes")
     } finally {
       setLoading(false)
     }
   }
 
-  const selectedClass = useMemo(
-    () => classes?.find((c) => c.id === selectedClassId),
-    [classes, selectedClassId],
-  )
+  const selectedClass = useMemo(() => {
+    return classes.find((cls) => cls.id === selectedClassId)
+  }, [classes, selectedClassId])
+
+  const students = useMemo<ClassStudentRow[]>(() => {
+    if (!selectedClass) return []
+
+    return selectedClass.enrollments.map((enrollment) => ({
+      id: enrollment.student.id,
+      studentId: enrollment.student.studentId,
+      gender: enrollment.student.gender,
+      guardianName: enrollment.student.guardianName,
+      guardianPhone: enrollment.student.guardianPhone,
+      guardianEmail: enrollment.student.guardianEmail,
+      address: enrollment.student.address,
+      admissionDate: enrollment.student.admissionDate,
+      dateOfBirth: enrollment.student.dateOfBirth,
+
+      classId: enrollment.classId,
+
+      user: enrollment.student.user,
+
+      enrollments: [
+        {
+          id: enrollment.id,
+          classId: enrollment.classId,
+          isCurrent: enrollment.isCurrent,
+          status: enrollment.status,
+        },
+      ],
+    }))
+  }, [selectedClass])
 
   const filteredStudents = useMemo(() => {
-    return students
-      ?.filter((student) => student.classId === selectedClassId)
-      ?.filter(
-        (student) =>
-          student.user?.firstName
-            ?.toLowerCase()
-            .includes(search.toLowerCase()) ||
-          student.user?.lastName
-            ?.toLowerCase()
-            .includes(search.toLowerCase()) ||
-          student.studentId?.toLowerCase().includes(search.toLowerCase()),
-      )
-  }, [students, selectedClassId, search])
+    return students.filter((student) =>
+      `${student.user.firstName} ${student.user.lastName}`
+        .toLowerCase()
+        .includes(search.toLowerCase()) ||
+      student.studentId.toLowerCase().includes(search.toLowerCase())
+    )
+  }, [students, search])
+
+  const handleEdit = (student: ClassStudentRow) => {
+    setStudent(student)
+    setOpen(true)
+  }
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this student?")) return
@@ -144,20 +185,26 @@ export function StudentsTable() {
         method: "DELETE",
       })
 
-      if (response.ok) {
-        if (user.role === "TEACHER") {
-          fetchDataForTeachers()
-        } else {
-          fetchDataForNoneTeachers()
-        }
+      if (!response.ok) {
+        toast.error("Failed to delete student")
+        return
+      }
+
+      toast.success("Student deleted successfully")
+
+      if (user.role === "TEACHER") {
+        fetchTeacherData()
+      } else {
+        fetchAdminData()
       }
     } catch (error) {
-      console.error("Error deleting student:", error)
+      console.error(error)
+      toast.error("Failed to delete student")
     }
   }
 
-  const formatClassName = (cls: Class) => {
-    return `${cls.level.replace(/_/g, " ")} - Grade ${cls.grade}${cls.section} (${cls.academicYear})`
+  const formatClassName = (cls: ClassWithEnrollments) => {
+    return `${cls.level.replace(/_/g, " ")} - Grade ${cls.grade}${cls.section}`
   }
 
   return (
@@ -170,27 +217,32 @@ export function StudentsTable() {
                 ? `Students - ${formatClassName(selectedClass)}`
                 : "Students"}
             </CardTitle>
-            {user.role !== 'TEACHER' && <AddStudentDialog onStudentAdded={fetchDataForNoneTeachers} />}
+
+            {user.role !== "TEACHER" && (
+              <AddStudentDialog onStudentAdded={fetchAdminData} />
+            )}
           </div>
-          {/* Class Selector */}
+
           <Select
             value={selectedClassId}
-            onValueChange={(value) => setSelectedClassId(value)}
+            onValueChange={setSelectedClassId}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select a class" />
+              <SelectValue placeholder="Select class" />
             </SelectTrigger>
+
             <SelectContent>
-              {classes?.map((cls) => (
+              {classes.map((cls) => (
                 <SelectItem key={cls.id} value={cls.id}>
                   {formatClassName(cls)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {/* Search */}
+
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+
             <Input
               placeholder="Search by name or student ID..."
               value={search}
@@ -198,7 +250,7 @@ export function StudentsTable() {
               className="pl-9"
             />
           </div>
-          {/* Class Info */}
+
           {selectedClass && (
             <div className="flex gap-4 text-sm text-muted-foreground">
               <div>
@@ -207,15 +259,17 @@ export function StudentsTable() {
                   {selectedClass.capacity}
                 </span>
               </div>
+
               <div>
                 Enrolled:{" "}
                 <span className="font-medium text-foreground">
-                  {selectedClass.currentEnrollment}
+                  {selectedClass.enrollments.length}
                 </span>
               </div>
             </div>
           )}
         </CardHeader>
+
         <CardContent>
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">
@@ -227,7 +281,7 @@ export function StudentsTable() {
             </div>
           ) : filteredStudents.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No students found in this class.
+              No students found.
             </div>
           ) : (
             <div className="rounded-lg border">
@@ -239,57 +293,71 @@ export function StudentsTable() {
                     <TableHead>Guardian</TableHead>
                     <TableHead>Contact</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="text-right">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {filteredStudents.map((student) => (
                     <TableRow key={student.id}>
                       <TableCell className="font-mono text-sm">
                         {student.studentId}
                       </TableCell>
+
                       <TableCell>
                         <div className="font-medium">
-                          {student.user?.firstName}{" "}
-                          {student.user?.lastName}
+                          {student.user.firstName}{" "}
+                          {student.user.lastName}
                         </div>
+
                         <div className="text-sm text-muted-foreground capitalize">
                           {student.gender}
                         </div>
                       </TableCell>
-                      <TableCell>{student.guardianName}</TableCell>
+
+                      <TableCell>
+                        {student.guardianName}
+                      </TableCell>
+
                       <TableCell>
                         <div className="text-sm">
                           {student.guardianPhone}
                         </div>
+
                         <div className="text-xs text-muted-foreground">
                           {student.guardianEmail}
                         </div>
                       </TableCell>
+
                       <TableCell>
                         <Badge
                           variant={
-                            student.user?.status === "active"
+                            student.user.status === "active"
                               ? "default"
                               : "secondary"
                           }
                           className="capitalize"
                         >
-                          {student.user?.status}
+                          {student.user.status}
                         </Badge>
                       </TableCell>
+
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => handleEdit(student)}
-                            variant="ghost" size="icon"
                           >
                             <Pencil className="w-4 h-4" />
                           </Button>
+
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleDelete(student.id!)}
+                            onClick={() => handleDelete(student.id)}
                           >
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
@@ -301,7 +369,13 @@ export function StudentsTable() {
               </Table>
             </div>
           )}
-          <EditStudentDialog onOpenChange={setOpen} open={open} student={student!} classes={classes}/>
+
+          <EditStudentDialog
+            open={open}
+            onOpenChange={setOpen}
+            student={student!}
+            classes={classes}
+          />
         </CardContent>
       </Card>
     </div>

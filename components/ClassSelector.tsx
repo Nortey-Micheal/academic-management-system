@@ -74,15 +74,30 @@ const ClassSelector: React.FC<ClassSelectorProps> = ({ onSelectStudent, setTerm,
   const currentClass = classes?.find(c => c?.id === selectedClass);
 
   const handleSelectStudent = () => {
+
     if (!currentClass || !selectedStudent) return;
 
-    const student = currentClass.students.find(
-      s => s.id === selectedStudent
+    const enrollment = currentClass.enrollments.find(
+      (e) => e.student.id === selectedStudent
     );
 
-    if (student) {
-      onSelectStudent(student, selectedYear, selectedTerm);
-    }
+    if (!enrollment) return;
+
+    const student: StudentWithRelations = {
+      ...enrollment.student,
+
+      enrollments: [
+        {
+          id: enrollment.id,
+          classId: enrollment.classId,
+          isCurrent: enrollment.isCurrent,
+          status: enrollment.status,
+        }
+      ]
+    };
+
+    onSelectStudent(student, selectedYear, selectedTerm);
+
   };
 
   if (loading) {
@@ -165,7 +180,7 @@ const ClassSelector: React.FC<ClassSelectorProps> = ({ onSelectStudent, setTerm,
             className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">-- Select a student --</option>
-            {currentClass?.students.map(student => (
+            {currentClass?.enrollments.map(({student}) => (
               <option key={student.id} value={student.id}>
                 {student.user.lastName} {student.user.firstName}
               </option>

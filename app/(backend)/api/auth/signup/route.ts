@@ -4,8 +4,11 @@ import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import { UserRole } from "@/lib/generated/prisma/enums";
 import { generateSequentialId } from "@/lib/id-generator";
+import { getSchoolConfig } from "@/config";
 
-const JWT_SECRET = process.env.JWT_TOKEN as string;
+const school = getSchoolConfig()
+
+const JWT_SECRET = school.secrets.JWT_TOKEN
 
 export async function POST(req: Request) {
   try {
@@ -70,30 +73,30 @@ export async function POST(req: Request) {
       /* ===========================
          STUDENT CREATION
       ============================ */
-      if (role === UserRole.STUDENT) {
-        if (!classId) {
-          throw new Error("ClassId is required for student");
-        }
+      // if (role === UserRole.STUDENT) {
+      //   if (!classId) {
+      //     throw new Error("ClassId is required for student");
+      //   }
 
-        const studentId = await generateSequentialId(tx, "STUDENT");
+      //   const studentId = await generateSequentialId(tx, "STUDENT");
 
-        await tx.student.create({
-          data: {
-            userId: newUser.id,
-            studentId,
-            classId,
-            dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : new Date(),
-            gender: gender || "OTHER",
-            guardianName: guardianName || "Unknown",
-            guardianEmail: guardianEmail || "unknown@unknown.com",
-            guardianPhone: guardianPhone || "0000000000",
-            address: address || "Unknown",
-            admissionDate: admissionDate
-              ? new Date(admissionDate)
-              : new Date(),
-          },
-        });
-      }
+      //   await tx.student.create({
+      //     data: {
+      //       userId: newUser.id,
+      //       studentId,
+      //       classId,
+      //       dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : new Date(),
+      //       gender: gender || "OTHER",
+      //       guardianName: guardianName || "Unknown",
+      //       guardianEmail: guardianEmail || "unknown@unknown.com",
+      //       guardianPhone: guardianPhone || "0000000000",
+      //       address: address || "Unknown",
+      //       admissionDate: admissionDate
+      //         ? new Date(admissionDate)
+      //         : new Date(),
+      //     },
+      //   });
+      // }
 
       /* ===========================
          TEACHER CREATION
