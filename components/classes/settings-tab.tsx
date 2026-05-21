@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { AlertCircle, Archive, Loader2, Save, Trash2, Users } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { AlertCircle, Archive, ArrowUpCircle, Loader2, Save, Trash2, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSelector } from 'react-redux'
 
@@ -32,11 +32,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import PromoteStudentsDialog from '../student-promotion-dialog'
+import { ClassWithStudents } from '@/lib/types'
 
 interface ClassData {
   id: string
   name: string
   academicYear: string
+  academicYearId: string
   currentTerm: number
   capacity: number
   enrollment: number
@@ -47,15 +50,26 @@ interface ClassData {
 
 export function SettingsTab({ classData }: { classData: ClassData }) {
   const userId = useSelector((state: StoreState) => state.user.id)
-
   const [loading, setLoading] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [open, setOpen] = useState<boolean>(false)
+  const [classes, setClasses] = useState<ClassWithStudents[]>()
+  const user = useSelector((state:StoreState) => state.user)
 
   const [formData, setFormData] = useState({
     name: classData.name,
     level: classData.level,
     capacity: classData.capacity.toString(),
   })
+
+  useEffect(() => {
+    const fetchClasses = async () => {
+      const response = await fetch(`/api/classWithStudents/admin/${user.id}`)
+      const data = await response.json()
+      setClasses(data.classes)
+    }
+    fetchClasses()
+  },[])
 
   const capacityPercentage = useMemo(() => {
     if (!classData.capacity) return 0
@@ -278,6 +292,36 @@ export function SettingsTab({ classData }: { classData: ClassData }) {
         </CardContent>
       </Card>
 
+      <Card className="border-blue-200 bg-blue-50 rounded-2xl">
+
+        <CardHeader>
+
+          <CardTitle className="text-base text-blue-900 flex items-center gap-2">
+            <ArrowUpCircle className="h-4 w-4" />
+            Student Promotion
+          </CardTitle>
+
+          <CardDescription className="text-blue-700">
+            Promote selected students to the next class for the new academic year.
+          </CardDescription>
+
+        </CardHeader>
+
+        <CardContent>
+
+          <PromoteStudentsDialog
+            open={open}
+            onOpenChange={setOpen}
+            currentClassId={classData.id}
+            academicYearId={classData.academicYearId}
+            // onSuccess={fetchClasses}
+            classes={classes!}
+          />
+
+        </CardContent>
+
+      </Card>
+
       <Card className="border-amber-200 bg-amber-50 rounded-2xl">
         <CardHeader>
           <CardTitle className="text-base text-amber-900 flex items-center gap-2">
@@ -369,9 +413,10 @@ export function SettingsTab({ classData }: { classData: ClassData }) {
             </AlertDialogContent>
 
           </AlertDialog>
+          
         </CardContent>
+        
       </Card>
-
     </div>
   )
 }

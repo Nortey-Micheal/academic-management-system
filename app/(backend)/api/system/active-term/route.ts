@@ -34,9 +34,11 @@ export async function GET() {
     return NextResponse.json({
       academicYear: {
         year: activeYear.year,
+        id: activeYear.id
       },
       term: {
         termNumber: activeTerm.termNumber,
+        id: activeTerm.id
       },
     })
 

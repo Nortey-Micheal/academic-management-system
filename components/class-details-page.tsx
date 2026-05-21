@@ -47,6 +47,7 @@ interface ClassDetail {
   grade: number
   section: string
   academicYear: string
+  academicYearId: string
   capacity: number
   currentEnrollment: number
   currentTerm: number
@@ -72,10 +73,20 @@ export default function ClassDetailPage({
     useState<ClassDetail | null>(null)
 
   const [loading, setLoading] = useState(true)
+  const [academicYearId,setAcademicYearId] = useState<string>('')
 
   useEffect(() => {
     fetchClass()
   }, [params.classId])
+
+  useEffect(() => {
+    const fetchAcademicYearAndTerm = async () => {
+      const response = await fetch(`/api/system/active-term`)
+      const data = await response.json()
+      setAcademicYearId(data.academicYear.id)
+    }
+    fetchAcademicYearAndTerm()
+  },[])
 
   const fetchClass = async () => {
     try {
@@ -124,6 +135,7 @@ export default function ClassDetailPage({
       status: 'active',
       enrollment: classData.currentEnrollment,
       teacher: classTeacherName,
+      academicYearId
     }
   }, [classData, classTeacherName])
 
