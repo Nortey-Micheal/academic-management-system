@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import ClassSelector from '@/components/ClassSelector';
 import ReportCard from '@/components/ReportCard';
 import { StudentReport } from '@/lib/types';
+import HeadteacherAssessment from './headteacher-assessment';
 
 export default function ReportCardGenerator() {
   // store just the selected student ID
@@ -11,6 +12,9 @@ export default function ReportCardGenerator() {
   const [studentReport, setStudentReport] = useState<StudentReport | null>(null);
   const [term, setTerm] = useState<string>('')
   const [year, setYear] = useState<string>('')
+  const [conduct, setConduct] = useState("")
+  const [attitude, setAttitude] = useState("")
+  const [headteacherRemarks,setHeadteacherRemarks] = useState<string>('')
 
   // fetch the report when a student ID is set
   useEffect(() => {
@@ -50,9 +54,18 @@ export default function ReportCardGenerator() {
               Back to Selection
             </button>
 
+            <HeadteacherAssessment
+              setConduct={setConduct}
+              setAttitude={setAttitude}
+              setHeadteacherRemarks={setHeadteacherRemarks}
+            />
+
             {studentReport ? (
               <ReportCard 
                 student={studentReport}
+                conduct={conduct}
+                attitude={attitude}
+                headteacherRemarks={headteacherRemarks}
                 schoolLogo="https://via.placeholder.com/100?text=School+Logo"
                 headteacherSignature="https://via.placeholder.com/150x80?text=Signature"
               />

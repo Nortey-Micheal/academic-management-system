@@ -13,11 +13,14 @@ interface ReportCardProps {
   student: StudentReport;
   schoolLogo?: string;
   headteacherSignature?: string;
+  attitude?: string;
+  conduct?: string;
+  headteacherRemarks?: string
 }
 
 const school = getSchoolConfig()
 
-const ReportCard: React.FC<ReportCardProps> = ({ student }) => {
+const ReportCard: React.FC<ReportCardProps> = ({ student, conduct, attitude, headteacherRemarks }) => {
   const reportRef = useRef<HTMLDivElement>(null);
 
   const totalScore = student.subjects.reduce((sum, subject) => sum + subject.totalScore, 0);
@@ -281,19 +284,19 @@ const ReportCard: React.FC<ReportCardProps> = ({ student }) => {
         <div className="grid grid-cols-2 gap-2 mb-4">
           <div className="border-2 border-black">
             <div className="font-bold bg-gray-200 border-b border-black p-1 text-sm">Conduct:</div>
-            <div className="p-1 text-sm">{student.conduct}</div>
+            <div className="p-1 text-sm">{conduct}</div>
           </div>
           <div className="border-2 border-black">
             <div className="font-bold bg-gray-200 border-b border-black p-1 text-sm">Attitude: </div>
-            <div className="p-1 text-sm">{student.attitude}</div>
+            <div className="p-1 text-sm">{attitude}</div>
           </div>
         </div>
 
         {/* Class Teacher Remark with Signature */}
         <div className="remark-section mb-4">
           <div className="remark-box border-2 border-black">
-            <div className="font-bold bg-gray-200 border-b border-black p-1 text-sm">Class Teacher's Remark:</div>
-            <div className="p-1 text-sm ">{student.classTeacherRemark}</div>
+            <div className="font-bold bg-gray-200 border-b border-black p-1 text-sm">Head Teacher's Remark:</div>
+            <div className="p-1 text-sm ">{headteacherRemarks}</div>
           </div>
           <div className="signature-box border-2 border-black flex flex-col items-center justify-center" style={{ minHeight: '80px' }}>
             <div className="text-center flex flex-col items-center justify-center h-full">
