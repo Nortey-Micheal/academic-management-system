@@ -34,6 +34,7 @@ interface ClassItem {
   capacity: number
   currentEnrollment: number
   classTeacherId: string | null
+  enrollments: any[]
 
   classTeacher?: {
     id: string
@@ -115,12 +116,12 @@ export function ClassesTable() {
   // STATS
   // ------------------------------------------------
   const totalStudents = classes.reduce(
-    (acc, cls) => acc + cls.currentEnrollment,
+    (acc, cls) => acc + cls.enrollments.length,
     0
   )
 
   const fullClasses = classes.filter(
-    (cls) => cls.currentEnrollment >= cls.capacity
+    (cls) => cls.enrollments.length >= cls.capacity
   ).length
 
   // ------------------------------------------------
@@ -309,7 +310,7 @@ export function ClassesTable() {
               {sortedClasses.map((classItem) => {
 
                 const occupancy = getOccupancyPercentage(
-                  classItem.currentEnrollment,
+                  classItem.enrollments.length,
                   classItem.capacity
                 )
 
@@ -427,7 +428,7 @@ export function ClassesTable() {
                               </span>
 
                               <span className="font-medium">
-                                {classItem.currentEnrollment} /{" "}
+                                {classItem.enrollments.length} /{" "}
                                 {classItem.capacity}
                               </span>
                             </div>

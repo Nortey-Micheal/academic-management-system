@@ -66,7 +66,8 @@ export function SettingsTab({ classData }: { classData: ClassData }) {
     const fetchClasses = async () => {
       const response = await fetch(`/api/classWithStudents/admin/${user.id}`)
       const data = await response.json()
-      setClasses(data.classes)
+      setClasses(data)
+      console.log(data)
     }
     fetchClasses()
   },[])

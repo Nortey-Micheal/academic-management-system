@@ -31,23 +31,100 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    /**
+     * GET CURRENT ACADEMIC YEAR
+     */
+    const currentAcademicYear = await prisma.academicYear.findUnique({
+      where: {
+        id: academicYearId,
+      },
+      include: {
+        terms: true,
+      },
+    })
+
+    if (!currentAcademicYear) {
+      return NextResponse.json(
+        {
+          error: "Academic year not found",
+        },
+        {
+          status: 404,
+        }
+      )
+    }
+
+    /**
+     * CHECK ACTIVE TERM
+     */
+    const activeTerm = currentAcademicYear.terms.find(
+      (term) => term.isActive
+    )
+
+    /**
+     * DEFAULT ENROLLMENT YEAR
+     */
+    let enrollmentAcademicYearId = academicYearId
+
+    /**
+     * IF ACTIVE YEAR + TERM 3
+     * USE NEXT ACADEMIC YEAR
+     */
+    if (
+      currentAcademicYear.isActive &&
+      activeTerm?.termNumber === 3
+    ) {
+
+      /**
+       * EXAMPLE:
+       * 2025/2026
+       * -> 2026
+       */
+      const nextYearStart =
+        currentAcademicYear.year.slice(-4)
+        console.log(nextYearStart)
+
+      /**
+       * FIND NEXT YEAR
+       */
+      const nextAcademicYear =
+        await prisma.academicYear.findFirst({
+          where: {
+            year: {
+              startsWith: nextYearStart,
+            },
+          },
+        })
+
+        console.log(nextAcademicYear)
+
+      if (nextAcademicYear) {
+        enrollmentAcademicYearId =
+          nextAcademicYear.id
+      }
+
+    }
+
     await prisma.$transaction(async (tx) => {
 
       for (const studentId of studentIds) {
 
-        const currentEnrollment = await tx.studentEnrollment.findFirst({
-          where: {
-            studentId,
-            classId: currentClassId,
-            isCurrent: true,
-          },
-        })
+        const currentEnrollment =
+          await tx.studentEnrollment.findFirst({
+            where: {
+              studentId,
+              classId: currentClassId,
+              isCurrent: true,
+            },
+          })
 
         if (!currentEnrollment) {
           continue
         }
 
-        // mark old enrollment inactive
+        /**
+         * MARK OLD ENROLLMENT
+         */
         await tx.studentEnrollment.update({
           where: {
             id: currentEnrollment.id,
@@ -58,12 +135,15 @@ export async function POST(request: NextRequest) {
           },
         })
 
-        // create new enrollment
+        /**
+         * CREATE NEW ENROLLMENT
+         */
         await tx.studentEnrollment.create({
           data: {
             studentId,
             classId: targetClassId,
-            academicYearId,
+            academicYearId:
+              enrollmentAcademicYearId,
             isCurrent: true,
             status: "ACTIVE",
           },
@@ -71,7 +151,9 @@ export async function POST(request: NextRequest) {
 
       }
 
-      // decrement old class count
+      /**
+       * UPDATE OLD CLASS COUNT
+       */
       await tx.class.update({
         where: {
           id: currentClassId,
@@ -83,7 +165,9 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      // increment new class count
+      /**
+       * UPDATE NEW CLASS COUNT
+       */
       await tx.class.update({
         where: {
           id: targetClassId,
@@ -107,10 +191,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        error: "Failed to promote students"
+        error: "Failed to promote students",
       },
       {
-        status: 500
+        status: 500,
       }
     )
 
