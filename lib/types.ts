@@ -1,5 +1,73 @@
 import { EnrollmentStatus, Gender, Level, Prisma, Section, Subject, UserStatus } from "./generated/prisma/client"
 
+// School Analytics Data Types
+
+export interface MetricCard {
+  label: string;
+  value: string | number;
+  subValue?: string;
+  trend?: 'up' | 'down' | 'neutral';
+  trendValue?: string;
+  icon?: string;
+}
+
+export interface Teacher {
+  id: string;
+  name: string;
+  department: string;
+  classes: number;
+  rating: number;
+  studentsCount: number;
+  yearsExperience: number;
+  specialization: string;
+}
+
+export interface Student {
+  id: string;
+  name: string;
+  grade: number;
+  gpa: number;
+  totalMarks: number;
+  status: 'excellent' | 'good' | 'average' | 'at-risk';
+  attendanceRate: number;
+  subjects: string[];
+}
+
+export interface AttendanceRecord {
+  date: string;
+  totalStudents: number;
+  presentStudents: number;
+  rate: number;
+}
+
+export interface FinancialRecord {
+  month: string;
+  collected: number;
+  outstanding: number;
+  rate: number;
+}
+
+export interface ChartDataPoint {
+  name: string;
+  value: number;
+  percentage?: number;
+}
+
+export interface ClassPerformance {
+  className: string;
+  averageGPA: number;
+  studentsCount: number;
+  topStudent: string;
+  attendance: number;
+}
+
+export interface DepartmentData {
+  name: string;
+  teachers: number;
+  students: number;
+  rating: number;
+}
+
 export interface SchoolConfig {
   schoolId: string;
 

@@ -54,7 +54,7 @@ export default function DashboardPage() {
       icon: Users,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
-      href: "/dashboard/students",
+      href: "/students",
     },
     {
       title: "Attendance Rate",
@@ -63,7 +63,7 @@ export default function DashboardPage() {
       icon: UserCheck,
       color: "text-green-600",
       bgColor: "bg-green-50",
-      href: "/dashboard/attendance",
+      href: "/attendance",
     },
     {
       title: "Total Classes",
@@ -72,7 +72,7 @@ export default function DashboardPage() {
       icon: Award,
       color: "text-amber-600",
       bgColor: "bg-amber-50",
-      href: "/dashboard/classes",
+      href: "/classes",
     },
     {
       title: "Assessments",
@@ -81,7 +81,7 @@ export default function DashboardPage() {
       icon: FileText,
       color: "text-purple-600",
       bgColor: "bg-purple-50",
-      href: "/dashboard/assessments",
+      href: "/assessments",
     },
   ]
 
@@ -90,25 +90,25 @@ export default function DashboardPage() {
       title: "Mark Attendance",
       description: "Record today's student attendance",
       icon: ClipboardCheck,
-      href: "/dashboard/attendance",
+      href: "/attendance",
     },
     {
       title: "Add Student",
       description: "Enroll a new student",
       icon: Users,
-      href: "/dashboard/students",
+      href: "/students",
     },
     {
       title: "Create Assessment",
       description: "Set up a new test or assignment",
       icon: FileText,
-      href: "/dashboard/assessments",
+      href: "/assessments",
     },
     {
       title: "View Analytics",
       description: "Check performance insights",
       icon: TrendingUp,
-      href: "/dashboard/analytics",
+      href: "/analytics",
     },
   ]
 
