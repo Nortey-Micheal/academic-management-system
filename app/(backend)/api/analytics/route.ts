@@ -1,59 +1,112 @@
-// app/api/analytics/route.ts
-
 import { prisma } from "@/lib/prisma"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url)
+
+    const startDate = searchParams.get("startDate")
+    const endDate = searchParams.get("endDate")
+    const classId = searchParams.get("classId")
+
+    const dateFilter =
+      startDate && endDate
+        ? {
+            gte: new Date(startDate),
+            lte: new Date(endDate),
+          }
+        : undefined
+
+    /* -------------------------------- */
+    /* ACTIVE ACADEMIC CONTEXT          */
+    /* -------------------------------- */
 
     const activeAcademicYear = await prisma.academicYear.findFirst({
-      where: {
-        isActive: true,
-      },
-      include: {
-        terms: true,
-      },
+      where: { isActive: true },
+      include: { terms: true },
     })
 
     const activeTerm = activeAcademicYear?.terms.find(
-      (term) => term.isActive
+      (t) => t.isActive
     )
 
     /* -------------------------------- */
-    /* BASIC COUNTS                     */
+    /* BASIC COUNTS (SYSTEM WIDE)       */
     /* -------------------------------- */
 
-    const [
-      totalStudents,
-      totalTeachers,
-      totalClasses,
-      totalSubjects,
-    ] = await Promise.all([
-      prisma.student.count(),
-      prisma.teacher.count(),
-      prisma.class.count(),
-      prisma.subject.count(),
-    ])
-
-    /* -------------------------------- */
-    /* ACTIVE STUDENTS                  */
-    /* -------------------------------- */
+    const [totalStudents, totalTeachers, totalClasses, totalSubjects] =
+      await Promise.all([
+        prisma.student.count(),
+        prisma.teacher.count(),
+        prisma.class.count(),
+        prisma.subject.count(),
+      ])
 
     const activeStudents = await prisma.studentEnrollment.count({
-      where: {
-        isCurrent: true,
-        status: "ACTIVE",
+      where: { isCurrent: true, status: "ACTIVE" },
+    })
+
+    /* -------------------------------- */
+    /* ATTENDANCE (GLOBAL + FILTERED)   */
+    /* -------------------------------- */
+
+    const attendanceWhere: any = {
+      academicYearId: activeAcademicYear?.id,
+      ...(activeTerm?.id && { termId: activeTerm.id }),
+    }
+
+    if (classId) attendanceWhere.classId = classId
+    if (dateFilter) attendanceWhere.date = dateFilter
+
+    const attendance = await prisma.attendance.findMany({
+      where: attendanceWhere,
+      select: {
+        date: true,
+        status: true,
+        classId: true,
       },
     })
 
-    /* -------------------------------- */
-    /* STUDENT GENDER DISTRIBUTION      */
-    /* -------------------------------- */
+    const attendanceSummaryMap = new Map()
 
-    const genderDistribution = await prisma.student.groupBy({
-      by: ["gender"],
-      _count: true,
+    const classAttendanceMap = new Map()
+
+    attendance.forEach((a) => {
+      const key = a.status
+
+      attendanceSummaryMap.set(
+        key,
+        (attendanceSummaryMap.get(key) || 0) + 1
+      )
+
+      // per class
+      if (!classAttendanceMap.has(a.classId)) {
+        classAttendanceMap.set(a.classId, {
+          classId: a.classId,
+          total: 0,
+          present: 0,
+        })
+      }
+
+      const c = classAttendanceMap.get(a.classId)
+      c.total += 1
+      if (a.status === "present") c.present += 1
     })
+
+    const attendanceSummary = Array.from(attendanceSummaryMap).map(
+      ([status, count]) => ({
+        status,
+        _count: count,
+      })
+    )
+
+    const attendanceByClass = Array.from(
+      classAttendanceMap.values()
+    ).map((c) => ({
+      classId: c.classId,
+      rate:
+        c.total === 0 ? 0 : Number(((c.present / c.total) * 100).toFixed(1)),
+    }))
 
     /* -------------------------------- */
     /* CLASS ENROLLMENT                 */
@@ -66,228 +119,90 @@ export async function GET() {
         section: true,
         currentEnrollment: true,
       },
-      orderBy: [
-        {
-          grade: "asc",
-        },
-      ],
     })
 
     /* -------------------------------- */
-    /* ATTENDANCE SUMMARY               */
-    /* -------------------------------- */
-
-    const attendanceSummary = await prisma.attendance.groupBy({
-      by: ["status"],
-      _count: true,
-      where: {
-        academicYearId: activeAcademicYear?.id,
-        termId: activeTerm?.id,
-      },
-    })
-
-    /* -------------------------------- */
-    /* RECENT ATTENDANCE TREND          */
-    /* -------------------------------- */
-
-    const recentAttendance = await prisma.attendance.findMany({
-      where: {
-        academicYearId: activeAcademicYear?.id,
-        termId: activeTerm?.id,
-      },
-      select: {
-        date: true,
-        status: true,
-      },
-      orderBy: {
-        date: "asc",
-      },
-    })
-
-    const attendanceTrendMap = new Map()
-
-    recentAttendance.forEach((record) => {
-
-      const key = record.date.toISOString().split("T")[0]
-
-      if (!attendanceTrendMap.has(key)) {
-        attendanceTrendMap.set(key, {
-          date: key,
-          total: 0,
-          present: 0,
-        })
-      }
-
-      const existing = attendanceTrendMap.get(key)
-
-      existing.total += 1
-
-      if (record.status === "present") {
-        existing.present += 1
-      }
-
-    })
-
-    const attendanceTrend = Array.from(
-      attendanceTrendMap.values()
-    ).map((item) => ({
-      date: item.date,
-      attendanceRate:
-        item.total === 0
-          ? 0
-          : Number(
-              (
-                (item.present / item.total) *
-                100
-              ).toFixed(1)
-            ),
-    }))
-
-    /* -------------------------------- */
-    /* SUBJECT PERFORMANCE              */
+    /* SUBJECT PERFORMANCE (FILTERED)   */
     /* -------------------------------- */
 
     const assessments = await prisma.termAssessment.findMany({
       where: {
         year: activeAcademicYear?.year,
-        term: activeTerm?.termNumber,
+        ...(activeTerm?.termNumber && {
+          term: activeTerm.termNumber,
+        }),
       },
-      include: {
-        subject: true,
-      },
+      include: { subject: true },
     })
 
     const subjectMap = new Map()
 
-    assessments.forEach((assessment) => {
-
+    assessments.forEach((a) => {
       const total =
-        assessment.test1 +
-        assessment.groupWork +
-        assessment.test2 +
-        assessment.project +
-        assessment.exam
+        a.test1 + a.groupWork + a.test2 + a.project + a.exam
 
-      if (!subjectMap.has(assessment.subject.subjectName)) {
-        subjectMap.set(
-          assessment.subject.subjectName,
-          {
-            total: 0,
-            count: 0,
-          }
-        )
+      if (!subjectMap.has(a.subject.subjectName)) {
+        subjectMap.set(a.subject.subjectName, { total: 0, count: 0 })
       }
 
-      const existing = subjectMap.get(
-        assessment.subject.subjectName
-      )
-
-      existing.total += total
-      existing.count += 1
-
+      const s = subjectMap.get(a.subject.subjectName)
+      s.total += total
+      s.count += 1
     })
 
-    const subjectPerformance = Array.from(
-      subjectMap.entries()
-    ).map(([subject, value]) => ({
-      subject,
-      average:
-        value.count === 0
-          ? 0
-          : Number(
-              (
-                value.total / value.count
-              ).toFixed(1)
-            ),
-    }))
+    const subjectPerformance = Array.from(subjectMap).map(
+      ([subject, v]) => ({
+        subject,
+        average: v.count ? Number((v.total / v.count).toFixed(1)) : 0,
+      })
+    )
 
     /* -------------------------------- */
     /* TOP STUDENTS                     */
     /* -------------------------------- */
 
-    const studentAssessments =
-      await prisma.termAssessment.findMany({
-        where: {
-          year: activeAcademicYear?.year,
-          term: activeTerm?.termNumber,
+    const studentAssessments = await prisma.termAssessment.findMany({
+      where: {
+        year: activeAcademicYear?.year,
+        ...(activeTerm?.termNumber && {
+          term: activeTerm.termNumber,
+        }),
+      },
+      include: {
+        student: {
+          include: { user: true },
         },
-        include: {
-          student: {
-            include: {
-              user: true,
-            },
-          },
-        },
-      })
+      },
+    })
 
     const studentMap = new Map()
 
-    studentAssessments.forEach((assessment) => {
-
+    studentAssessments.forEach((a) => {
       const total =
-        assessment.test1 +
-        assessment.groupWork +
-        assessment.test2 +
-        assessment.project +
-        assessment.exam
+        a.test1 + a.groupWork + a.test2 + a.project + a.exam
 
-      if (!studentMap.has(assessment.studentId)) {
-        studentMap.set(assessment.studentId, {
-          student: assessment.student,
+      if (!studentMap.has(a.studentId)) {
+        studentMap.set(a.studentId, {
+          student: a.student,
           total: 0,
           count: 0,
         })
       }
 
-      const existing = studentMap.get(
-        assessment.studentId
-      )
-
-      existing.total += total
-      existing.count += 1
-
+      const s = studentMap.get(a.studentId)
+      s.total += total
+      s.count += 1
     })
 
-    const topStudents = Array.from(
-      studentMap.values()
-    )
-      .map((item) => ({
-        id: item.student.id,
-        name: `${item.student.user.firstName} ${item.student.user.lastName}`,
-        studentId: item.student.studentId,
-        average:
-          item.count === 0
-            ? 0
-            : Number(
-                (
-                  item.total / item.count
-                ).toFixed(1)
-              ),
+    const topStudents = Array.from(studentMap.values())
+      .map((s) => ({
+        id: s.student.id,
+        name: `${s.student.user.firstName} ${s.student.user.lastName}`,
+        studentId: s.student.studentId,
+        average: s.count ? Number((s.total / s.count).toFixed(1)) : 0,
       }))
       .sort((a, b) => b.average - a.average)
       .slice(0, 10)
-
-    /* -------------------------------- */
-    /* TEACHER WORKLOAD                 */
-    /* -------------------------------- */
-
-    const teacherAnalytics =
-      await prisma.teacher.findMany({
-        include: {
-          user: true,
-          teacherClassSubjects: true,
-          subjects: true,
-        },
-      })
-
-    const teacherPerformance =
-      teacherAnalytics.map((teacher) => ({
-        id: teacher.id,
-        name: `${teacher.user.firstName} ${teacher.user.lastName}`,
-        subjects: teacher.subjects.length,
-        classes:
-          teacher.teacherClassSubjects.length,
-      }))
 
     /* -------------------------------- */
     /* RESPONSE                         */
@@ -299,42 +214,26 @@ export async function GET() {
       overview: {
         totalStudents,
         activeStudents,
-        totalTeachers,
+        totalTeachers: await prisma.teacher.count(),
         totalClasses,
         totalSubjects,
       },
 
       academicYear: activeAcademicYear,
-
       activeTerm,
 
-      genderDistribution,
+      attendanceSummary,
+      attendanceByClass,
 
       classEnrollment,
-
-      attendanceSummary,
-
-      attendanceTrend,
-
       subjectPerformance,
-
       topStudents,
-
-      teacherPerformance,
     })
-
   } catch (error) {
-
     console.error(error)
-
     return NextResponse.json(
-      {
-        error: "Failed to fetch analytics",
-      },
-      {
-        status: 500,
-      }
+      { error: "Failed to fetch analytics" },
+      { status: 500 }
     )
-
   }
 }
